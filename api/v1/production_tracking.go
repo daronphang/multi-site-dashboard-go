@@ -13,7 +13,7 @@ type PtRequest struct {
 	ID int `json:"id" validate:"required"`
 }
 
-func RegisterProdTrackingRoutes(g *echo.Group) {
+func RegisterProductionTrackingRoutes(g *echo.Group) {
 	g.POST("/salesorder/status", func(c echo.Context) error {
 		p := new(PtRequest)
 		if err := api.ValidatePayload(c, p); err != nil {

@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "repository/resource_tracking/query.sql"
+    schema: "repository/resource_tracking/migrations"
+    gen:
+      go:
+        package: "resourcetracking"
+        out: "repository/resource_tracking"
+        sql_package: "pgx/v5"

@@ -34,18 +34,19 @@ type KafkaConfig struct {
 	Topic string `yaml:"Topic"`
 }
 
-type TimeScaleConfig struct {
+type PostgresConfig struct {
 	Server string `yaml:"server"`
 	Port int `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+	DBName string `yaml:"dbName"`
 }
 
 type Config struct {
 	Environment string `yaml:"environment"`
 	Port int `yaml:"port"`
 	LogDir string `yaml:"logDir"`
-	TimeScale TimeScaleConfig `yaml:"timeScale"`
+	Postgres PostgresConfig `yaml:"postgres"`
 }
 
 var syncOnceConfig sync.Once

@@ -31,6 +31,7 @@ func CustomRequestLogger(logger *zap.Logger) echo.MiddlewareFunc {
 				zap.Int("status", v.Status),
 				zap.String("latency", v.Latency.String()),
 				zap.String("payload", c.Get("payload").(string)),
+				zap.Int64("bodySize", v.ResponseSize),
 			)
 			return nil
 		},

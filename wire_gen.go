@@ -7,8 +7,16 @@
 package main
 
 import (
+	"context"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 	"multi-site-dashboard-go/config"
+	"multi-site-dashboard-go/repository"
+)
+
+import (
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // Injectors from wire.go:
@@ -25,10 +33,30 @@ func WireLogger() (*zap.Logger, error) {
 	return logger, nil
 }
 
-func WireConfig() (*config.Config, error) {
+func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
 	configConfig, err := config.ProvideConfig()
 	if err != nil {
 		return nil, err
 	}
-	return configConfig, nil
+	pool, err := repository.ProvidePgConnPool(ctx, configConfig)
+	if err != nil {
+		return nil, err
+	}
+	return pool, nil
+}
+
+func WirePgMigrateInstance(relativePath string) (*migrate.Migrate, error) {
+	configConfig, err := config.ProvideConfig()
+	if err != nil {
+		return nil, err
+	}
+	driver, err := repository.ProvidePgDriver(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	migrateMigrate, err := repository.ProvidePgMigrateInstance(driver, relativePath)
+	if err != nil {
+		return nil, err
+	}
+	return migrateMigrate, nil
 }

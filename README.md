@@ -2,13 +2,17 @@
 
 ## First time setup
 
-1. Clone git repository
+### Git
+
+1. Clone git repository into your local directory
 
 ```sh
-$ git clone
+$ git clone https://tools.mf.platform/bitbucket/scm/dash/multi-site-dashboard-go.git
 ```
 
-2. Setup wire for dependency injection
+### Wire (dependency injection)
+
+1. Setup wire
 
 ```sh
 $ go install github.com/google/wire/cmd/wire@latest
@@ -18,7 +22,7 @@ $ export PATH=$PATH:$GOPATH/bin
 $ source ~/.bashrc
 ```
 
-3. Update VSCode to resolve import issues when using wire
+3. Update VSCode to resolve import issues
 
 ```json
 // command + shift + p to open User Settings
@@ -29,7 +33,33 @@ $ source ~/.bashrc
 }
 ```
 
-4. Generate wire injectors
+### TimescaleDB
+
+1. Install as a container
+
+https://docs.timescale.com/self-hosted/latest/install/installation-docker/
+
+```sh
+$ docker run -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg16
+```
+
+2. Install psql (command line) for PostgreSQL
+
+```sh
+$ brew install postgresql@<VERSION>
+$ export PATH=$PATH:/opt/homebrew/opt/postgresql@<VERSION>/bin
+$ psql --version
+```
+
+3. Install pgAdmin (GUI) for PostgreSQL
+
+https://www.pgadmin.org/download/pgadmin-4-macos/
+
+## Development
+
+### Wire
+
+1. Generate code
 
 ```sh
 $ cd path/to/root/directory
@@ -37,8 +67,24 @@ $ wire
 $ go generate # once wire_gen.go is created, can regenerate using this
 ```
 
-5. Running application
+### SQL queries (sqlc)
+
+1. Write queries in SQL (follow sqlc for documentation)
+
+2. Generate code
+
+### Web server
+
+1. Run web server
 
 ```sh
 $ go run main.go wire_gen.go
 ```
+
+## Deployment
+
+### TimescaleDB
+
+1. Deploy using PostgreSQL Kubernetes operators to simplify installation, configuration and lifecycle
+
+https://github.com/zalando/postgres-operator/tree/master

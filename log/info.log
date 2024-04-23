@@ -61,3 +61,8 @@
 {"level":"info","ts":"2024/04/19 - 17:27:08","msg":"request logging","URI":"/api/v1/prod-tracking/salesorder/status","status":200,"latency":"43.208µs","payload":"{\n    \"name\": \"hello world!\",\n    \"id\": 123\n}"}
 {"level":"info","ts":"2024/04/19 - 17:29:34","msg":"Starting ECHO server in port 8000"}
 {"level":"info","ts":"2024/04/19 - 17:29:37","msg":"request logging","URI":"/api/v1/prod-tracking/salesorder/status","status":200,"latency":"453.708µs","payload":"{\n    \"name\": \"hello world!\",\n    \"id\": 123\n}"}
+{"level":"info","ts":"2024/04/23 - 15:02:29","msg":"Starting ECHO server in port 8000"}
+{"level":"info","ts":"2024/04/23 - 15:39:10","msg":"Starting ECHO server in port 8000"}
+{"level":"info","ts":"2024/04/23 - 16:50:14","msg":"Starting ECHO server in port 8000"}
+{"level":"info","ts":"2024/04/23 - 21:51:39","msg":"Starting ECHO server in port 8000"}
+{"level":"info","ts":"2024/04/23 - 22:11:38","msg":"Starting ECHO server in port 8000"}
