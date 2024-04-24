@@ -63,8 +63,8 @@ https://www.pgadmin.org/download/pgadmin-4-macos/
 
 ```sh
 $ cd path/to/root/directory
-$ wire
-$ go generate # once wire_gen.go is created, can regenerate using this
+$ wire internal
+$ go generate internal # once wire_gen.go is created, can regenerate using this
 ```
 
 ### SQL queries (sqlc)
@@ -78,7 +78,7 @@ $ go generate # once wire_gen.go is created, can regenerate using this
 1. Run web server
 
 ```sh
-$ go run main.go wire_gen.go
+$ go run cmd/main.go
 ```
 
 ## Deployment

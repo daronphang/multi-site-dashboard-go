@@ -1,10 +1,13 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "repository/resource_tracking/query.sql"
-    schema: "repository/resource_tracking/migrations"
+    queries: "internal/repository/query"
+    schema: "internal/database/migration"
     gen:
       go:
-        package: "resourcetracking"
-        out: "repository/resource_tracking"
+        emit_prepared_queries: true
+        emit_json_tags: true
+        json_tags_case_style: "camel"
+        package: "repository"
+        out: "internal/repository"
         sql_package: "pgx/v5"

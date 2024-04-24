@@ -1,10 +1,10 @@
-package repository
+package database
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"multi-site-dashboard-go/config"
+	"multi-site-dashboard-go/internal/config"
 	"net/url"
 
 	"github.com/golang-migrate/migrate/v4/database"

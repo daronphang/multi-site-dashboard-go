@@ -1,11 +1,11 @@
 //go:build wireinject
 
-package main
+package internal
 
 import (
 	"context"
-	config "multi-site-dashboard-go/config"
-	"multi-site-dashboard-go/repository"
+	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/database"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/google/wire"
@@ -19,15 +19,15 @@ func WireLogger() (*zap.Logger, error) {
 }
 
 func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
-	wire.Build(config.ProvideConfig, repository.ProvidePgConnPool)
+	wire.Build(config.ProvideConfig, database.ProvidePgConnPool)
 	return &pgxpool.Pool{}, nil
 }
 
-func WirePgMigrateInstance(relativePath string) (*migrate.Migrate, error) {
+func WirePgMigrateInstance(wd string) (*migrate.Migrate, error) {
 	wire.Build(
 		config.ProvideConfig,
-		repository.ProvidePgDriver,
-		repository.ProvidePgMigrateInstance,
+		database.ProvidePgDriver,
+		database.ProvidePgMigrateInstance,
 	)
 	return &migrate.Migrate{}, nil
 }

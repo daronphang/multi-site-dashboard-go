@@ -23,6 +23,7 @@ func CustomRequestLogger(logger *zap.Logger) echo.MiddlewareFunc {
 			c.Request().Body = io.NopCloser(bytes.NewBuffer(reqBody)) // Reset
 
 			c.Set("payload", string(reqBody[:]))
+			c.Set("bodySize", len(reqBody))
 		},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			logger.Info(
@@ -31,7 +32,7 @@ func CustomRequestLogger(logger *zap.Logger) echo.MiddlewareFunc {
 				zap.Int("status", v.Status),
 				zap.String("latency", v.Latency.String()),
 				zap.String("payload", c.Get("payload").(string)),
-				zap.Int64("bodySize", v.ResponseSize),
+				zap.Int("bodySize", c.Get("bodySize").(int)),
 			)
 			return nil
 		},

@@ -4,19 +4,15 @@
 //go:build !wireinject
 // +build !wireinject
 
-package main
+package internal
 
 import (
 	"context"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
-	"multi-site-dashboard-go/config"
-	"multi-site-dashboard-go/repository"
-)
-
-import (
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/database"
 )
 
 // Injectors from wire.go:
@@ -38,23 +34,23 @@ func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-	pool, err := repository.ProvidePgConnPool(ctx, configConfig)
+	pool, err := database.ProvidePgConnPool(ctx, configConfig)
 	if err != nil {
 		return nil, err
 	}
 	return pool, nil
 }
 
-func WirePgMigrateInstance(relativePath string) (*migrate.Migrate, error) {
+func WirePgMigrateInstance(wd string) (*migrate.Migrate, error) {
 	configConfig, err := config.ProvideConfig()
 	if err != nil {
 		return nil, err
 	}
-	driver, err := repository.ProvidePgDriver(configConfig)
+	driver, err := database.ProvidePgDriver(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	migrateMigrate, err := repository.ProvidePgMigrateInstance(driver, relativePath)
+	migrateMigrate, err := database.ProvidePgMigrateInstance(driver, wd)
 	if err != nil {
 		return nil, err
 	}
