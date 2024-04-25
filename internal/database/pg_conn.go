@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"multi-site-dashboard-go/internal/config"
 	"net/url"
+	"sync"
 
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,9 +14,15 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-var pgConnPool *pgxpool.Pool
+
+var (
+	pgConnPool *pgxpool.Pool
+	lock sync.Mutex
+)
 
 func ProvidePgConnPool(ctx context.Context, conf *config.Config) (*pgxpool.Pool, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	// Use established connection pool if exists.
 	if pgConnPool != nil {
 		if err := pgConnPool.Ping(ctx); err == nil {

@@ -19,10 +19,10 @@ RETURNING id, machine, metric1, metric2, metric3, created_at
 `
 
 type CreateMachineResourceUsageParams struct {
-	Machine string `json:"machine"`
-	Metric1 int32  `json:"metric1"`
-	Metric2 int32  `json:"metric2"`
-	Metric3 int32  `json:"metric3"`
+	Machine string `db:"machine" json:"machine" validate:"required"`
+	Metric1 int32  `db:"metric1" json:"metric1" validate:"required"`
+	Metric2 int32  `db:"metric2" json:"metric2" validate:"required"`
+	Metric3 int32  `db:"metric3" json:"metric3" validate:"required"`
 }
 
 func (q *Queries) CreateMachineResourceUsage(ctx context.Context, arg CreateMachineResourceUsageParams) (MachineResourceUsage, error) {
@@ -74,4 +74,18 @@ func (q *Queries) GetMachineResourceUsage(ctx context.Context, machine string) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateMachineResourceUsage = `-- name: UpdateMachineResourceUsage :exec
+UPDATE machine_resource_usage SET metric1 = $1 WHERE machine = $2
+`
+
+type UpdateMachineResourceUsageParams struct {
+	Metric1 int32  `db:"metric1" json:"metric1" validate:"required"`
+	Machine string `db:"machine" json:"machine" validate:"required"`
+}
+
+func (q *Queries) UpdateMachineResourceUsage(ctx context.Context, arg UpdateMachineResourceUsageParams) error {
+	_, err := q.db.Exec(ctx, updateMachineResourceUsage, arg.Metric1, arg.Machine)
+	return err
 }

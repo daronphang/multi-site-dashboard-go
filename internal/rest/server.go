@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/repository"
 	api "multi-site-dashboard-go/internal/rest/api/v1"
 	cm "multi-site-dashboard-go/internal/rest/middleware"
 	cv "multi-site-dashboard-go/internal/rest/validator"
@@ -28,7 +29,7 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	ctx := context.Background()
+	ctx := context.TODO()
 	wd, _ := os.Getwd()
 
 	// Initialize dependencies.
@@ -44,19 +45,13 @@ func NewServer() (*Server, error) {
 		return nil, errors.New(msg)
     }
 
-	db, err := internal.WirePgConnPool(ctx)
-	if err != nil {
-		msg := fmt.Sprintf("error connecting to DB: %v", err)
-		return nil, errors.New(msg)
-	}
-
 	// Migrate db.
 	m, err := internal.WirePgMigrateInstance(wd)
 	if err != nil {
 		msg := fmt.Sprintf("error creating DB migration instance: %v", err)
 		return nil, errors.New(msg)
 	}
-	if err := m.Up(); err.Error() != "no change" {
+	if err := m.Up(); err != nil && err.Error() != "no change" {
 		msg := fmt.Sprintf("error migrating db: %v", err)
 		return nil, errors.New(msg)
 	}
@@ -70,8 +65,15 @@ func NewServer() (*Server, error) {
 		cm.CustomRequestLogger(logger),
 	)
 
+	// Create repositories.
+	db, err := internal.WirePgConnPool(ctx)
+	if err != nil {
+		return nil, err
+	}
+	repo := repository.New(db)
+
 	// Create handler.
-	svc := uc.NewUseCaseService()
+	svc := uc.NewUseCaseService(repo)
 	h := api.NewHandler(svc)
 
 	// Register routes.
@@ -84,7 +86,7 @@ func NewServer() (*Server, error) {
 	rtGroup := baseGroup.Group("/rt")
 	h.RegisterRTRoutes(rtGroup)
 
-	// Register custom validator.
+	// Register custom handlers.
 	e.Validator = &cv.CustomValidator{Validator: validator.New()}
 
 	return &Server{Echo: e, Cfg: conf, Logger: logger, DB: db}, nil

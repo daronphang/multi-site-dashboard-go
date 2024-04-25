@@ -10,6 +10,9 @@ INSERT INTO machine_resource_usage (
 )
 RETURNING *;
 
+-- name: UpdateMachineResourceUsage :exec
+UPDATE machine_resource_usage SET metric1 = $1 WHERE machine = $2;
+
 -- -- name: CreateMachineResourceUsage :exec
 -- INSERT INTO machine_resource_usage (
 --   machine, metric1, metric2, metric3 

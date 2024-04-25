@@ -9,10 +9,10 @@ import (
 )
 
 type MachineResourceUsage struct {
-	ID        int32            `json:"id"`
-	Machine   string           `json:"machine"`
-	Metric1   int32            `json:"metric1"`
-	Metric2   int32            `json:"metric2"`
-	Metric3   int32            `json:"metric3"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	ID        int32            `db:"id" json:"id"`
+	Machine   string           `db:"machine" json:"machine" validate:"required"`
+	Metric1   int32            `db:"metric1" json:"metric1" validate:"required"`
+	Metric2   int32            `db:"metric2" json:"metric2" validate:"required"`
+	Metric3   int32            `db:"metric3" json:"metric3" validate:"required"`
+	CreatedAt pgtype.Timestamp `db:"created_at" json:"createdAt"`
 }
