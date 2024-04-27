@@ -9,8 +9,8 @@ import (
 )
 
 type Querier interface {
-	ExecWithPgTx(ctx context.Context, cb func(Querier) (interface{}, error)) func() (interface{}, error)
 	CreateMachineResourceUsage(ctx context.Context, arg CreateMachineResourceUsageParams) (MachineResourceUsage, error)
+	GetAggregatedMachineResourceUsage(ctx context.Context, arg GetAggregatedMachineResourceUsageParams) ([]GetAggregatedMachineResourceUsageRow, error)
 	GetMachineResourceUsage(ctx context.Context, machine string) ([]MachineResourceUsage, error)
 	UpdateMachineResourceUsage(ctx context.Context, arg UpdateMachineResourceUsageParams) error
 }

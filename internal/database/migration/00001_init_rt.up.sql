@@ -1,4 +1,5 @@
 BEGIN;
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE TABLE machine_resource_usage (
     id SERIAL PRIMARY KEY, 
     machine VARCHAR(255) NOT NULL,
@@ -7,4 +8,5 @@ CREATE TABLE machine_resource_usage (
     metric3 INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+SELECT create_hypertable('machine_resource_usage', by_range('created_at'));
 COMMIT;

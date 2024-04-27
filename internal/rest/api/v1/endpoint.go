@@ -14,5 +14,6 @@ func (h *handler) RegisterPTRoutes(g *echo.Group) {
 
 func (h *handler) RegisterRTRoutes(g *echo.Group) {
 	g.GET("/machines/:machine", h.GetMachineResourceUsageRT)
+	g.GET("/agg/machines/:machine", h.GetAggMachineResourceUsageRT)
 	g.POST("/machine", h.CreateMachineResourceUsageRT)
 }

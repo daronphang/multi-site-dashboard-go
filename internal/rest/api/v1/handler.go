@@ -8,7 +8,6 @@ import (
 
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/domain"
-	"multi-site-dashboard-go/internal/repository"
 	cv "multi-site-dashboard-go/internal/rest/validator"
 	uc "multi-site-dashboard-go/internal/usecase"
 )
@@ -43,7 +42,29 @@ func (h *handler) CreateSalesOrderPT(c echo.Context) error {
 
 func (h *handler) GetMachineResourceUsageRT(c echo.Context) error {
 	machine := c.Param("machine")
-	rv, err := h.Service.GetTimeSeriesMachineResourceUsageRT(c.Request().Context(), machine)
+	ctx := c.Request().Context()
+	rv, err := h.Service.GetMachineResourceUsageRT(ctx, machine)
+	
+	if err != nil {
+		logger.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusOK, rv)
+}
+
+func (h *handler) GetAggMachineResourceUsageRT(c echo.Context) error {
+	machine := c.Param("machine")
+	lookBackPeriod := c.QueryParam("lookBackPeriod") // '1 hour', '1 day', '23 hours'
+	timeBucket := c.QueryParam("timeBucket") // '5 minutes', '1 hour', '1 day'
+	ctx := c.Request().Context()
+
+	p := &domain.GetAggMachineResourceUsageParams{Machine: machine, TimeBucket: timeBucket, LookBackPeriod: lookBackPeriod}
+	if err := cv.ValidatePayload(c, p); err != nil {
+		logger.Error(err.Error())
+		return cv.NewHTTPValidationError(c, http.StatusBadRequest, err)
+	}
+	rv, err := h.Service.GetAggMachineResourceUsageRT(ctx, p)
+
 	if err != nil {
 		logger.Error(err.Error())
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -52,16 +73,15 @@ func (h *handler) GetMachineResourceUsageRT(c echo.Context) error {
 }
 
 func (h *handler) CreateMachineResourceUsageRT(c echo.Context) error {
-	p := new(repository.CreateMachineResourceUsageParams)
+	p := new(domain.MachineResourceUsage)
 	if err := cv.ValidatePayload(c, p); err != nil {
 		logger.Error(err.Error())
 		return cv.NewHTTPValidationError(c, http.StatusBadRequest, err)
 	}
-	rv, err := h.Service.TestSuccessPgTransaction(c.Request().Context(), *p)
+	rv, err := h.Service.CreateMachineResourceUsage(c.Request().Context(), p)
 	if err != nil {
 		logger.Error(err.Error())
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-
 	return c.JSON(http.StatusOK, rv)
 }

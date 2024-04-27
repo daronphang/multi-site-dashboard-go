@@ -7,6 +7,8 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMachineResourceUsage = `-- name: CreateMachineResourceUsage :one
@@ -19,10 +21,10 @@ RETURNING id, machine, metric1, metric2, metric3, created_at
 `
 
 type CreateMachineResourceUsageParams struct {
-	Machine string `db:"machine" json:"machine" validate:"required"`
-	Metric1 int32  `db:"metric1" json:"metric1" validate:"required"`
-	Metric2 int32  `db:"metric2" json:"metric2" validate:"required"`
-	Metric3 int32  `db:"metric3" json:"metric3" validate:"required"`
+	Machine string `json:"machine"`
+	Metric1 int32  `json:"metric1"`
+	Metric2 int32  `json:"metric2"`
+	Metric3 int32  `json:"metric3"`
 }
 
 func (q *Queries) CreateMachineResourceUsage(ctx context.Context, arg CreateMachineResourceUsageParams) (MachineResourceUsage, error) {
@@ -42,6 +44,57 @@ func (q *Queries) CreateMachineResourceUsage(ctx context.Context, arg CreateMach
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getAggregatedMachineResourceUsage = `-- name: GetAggregatedMachineResourceUsage :many
+SELECT 
+time_bucket(CAST($2::text AS INTERVAL), created_at)::timestamp AS bucket,
+AVG(metric1) AS metric1,
+AVG(metric2) AS metric2,
+AVG(metric3) AS metric3
+FROM machine_resource_usage
+WHERE machine = $1
+AND created_at > NOW() - CAST($3::text AS INTERVAL)
+GROUP BY bucket
+ORDER BY bucket ASC
+`
+
+type GetAggregatedMachineResourceUsageParams struct {
+	Machine        string `json:"machine"`
+	TimeBucket     string `json:"timeBucket"`
+	LookBackPeriod string `json:"lookBackPeriod"`
+}
+
+type GetAggregatedMachineResourceUsageRow struct {
+	Bucket  pgtype.Timestamp `json:"bucket"`
+	Metric1 float64          `json:"metric1"`
+	Metric2 float64          `json:"metric2"`
+	Metric3 float64          `json:"metric3"`
+}
+
+func (q *Queries) GetAggregatedMachineResourceUsage(ctx context.Context, arg GetAggregatedMachineResourceUsageParams) ([]GetAggregatedMachineResourceUsageRow, error) {
+	rows, err := q.db.Query(ctx, getAggregatedMachineResourceUsage, arg.Machine, arg.TimeBucket, arg.LookBackPeriod)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAggregatedMachineResourceUsageRow
+	for rows.Next() {
+		var i GetAggregatedMachineResourceUsageRow
+		if err := rows.Scan(
+			&i.Bucket,
+			&i.Metric1,
+			&i.Metric2,
+			&i.Metric3,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMachineResourceUsage = `-- name: GetMachineResourceUsage :many
@@ -81,8 +134,8 @@ UPDATE machine_resource_usage SET metric1 = $1 WHERE machine = $2
 `
 
 type UpdateMachineResourceUsageParams struct {
-	Metric1 int32  `db:"metric1" json:"metric1" validate:"required"`
-	Machine string `db:"machine" json:"machine" validate:"required"`
+	Metric1 int32  `json:"metric1"`
+	Machine string `json:"machine"`
 }
 
 func (q *Queries) UpdateMachineResourceUsage(ctx context.Context, arg UpdateMachineResourceUsageParams) error {

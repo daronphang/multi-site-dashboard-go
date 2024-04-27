@@ -27,10 +27,10 @@ func NewHTTPValidationError(c echo.Context, code int, err error) error {
 	return c.JSON(code, hve)
 }
 
+// v is an argument that is a pointer to a value of the type that implements 
+// the interface you want to validate with.
+// Errors are handled in the routes.
 func ValidatePayload(c echo.Context, v interface{}) error {
-	// v is an argument that is a pointer to a value of the type that implements 
-	// the interface you want to validate with.
-	// Errors are handled in the routes.
 	if err := c.Bind(v); err != nil {
 		return err
 	}
@@ -108,4 +108,12 @@ func flattenAndTranslateErrors(ve *validator.ValidationErrors) string {
 	}
 	s := b.String()
 	return s[:len(s) - 1]
+}
+
+func IntRequired(fl validator.FieldLevel) bool {
+	defer func() {
+		_ = recover();
+	}()
+	_ = fl.Field().Int()
+	return true
 }

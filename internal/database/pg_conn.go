@@ -20,6 +20,9 @@ var (
 	lock sync.Mutex
 )
 
+// When using a connection pool, if the existing connection to db is broken, it will automatically
+// perform a reconnection for every new connection a thread requests from the pool.
+// Hence, it is safe to initialize the connection pool once and reusing it for all threads.
 func ProvidePgConnPool(ctx context.Context, conf *config.Config) (*pgxpool.Pool, error) {
 	lock.Lock()
 	defer lock.Unlock()

@@ -7,8 +7,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type ExtQuerier interface {
+	Querier
+	ExecWithPgTx(ctx context.Context, cb func(Querier) (interface{}, error)) func() (interface{}, error)
+}
+
+// Enables multiple executions to be atomic by treating them as a single transaction.
 func (q *Queries) ExecWithPgTx(ctx context.Context, cb func(Querier) (interface{}, error)) func() (interface{}, error) {
-	// Enables multiple executions to be atomic by treating them as a single transaction.
 	return func() (interface{}, error) {
 		db, ok := q.db.(*pgxpool.Pool)
 		if !ok {

@@ -9,7 +9,5 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	if err := s.Run(); err != nil {
-		s.Logger.Fatal(err.Error())
-	}
+	s.Run()
 }

@@ -12,6 +12,8 @@ import (
 	cv "multi-site-dashboard-go/internal/rest/validator"
 	uc "multi-site-dashboard-go/internal/usecase"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -29,7 +31,7 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	wd, _ := os.Getwd()
 
 	// Initialize dependencies.
@@ -87,16 +89,34 @@ func NewServer() (*Server, error) {
 	h.RegisterRTRoutes(rtGroup)
 
 	// Register custom handlers.
-	e.Validator = &cv.CustomValidator{Validator: validator.New()}
+	v := validator.New()
+	err = v.RegisterValidation("int_required", cv.IntRequired)
+	if err != nil {
+		fmt.Printf("error registering custom validation: %v", err.Error())
+	}
+	e.Validator = &cv.CustomValidator{Validator: v}
 
 	return &Server{Echo: e, Cfg: conf, Logger: logger, DB: db}, nil
 }
 
-func (s *Server) Run() error {
-	fmt.Printf("Starting ECHO server in port %v", s.Cfg.Port)
-	if err := s.Echo.Start(fmt.Sprintf(":%v", s.Cfg.Port)); err != nil {
-		msg := fmt.Sprintf("failed to start server: %v", err)
-		return errors.New(msg)
+func (s *Server) Run() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	go func() {
+		fmt.Printf("starting ECHO server in port %v", s.Cfg.Port)
+		if err := s.Echo.Start(fmt.Sprintf(":%v", s.Cfg.Port)); err != nil {
+			s.Logger.Fatal(fmt.Sprintf("failed to start server: %v", err))
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	fmt.Printf("performing graceful shutdown with timeout of %v...", 10*time.Second)
+	s.DB.Close()
+	if err := s.Echo.Shutdown(ctx); err != nil {
+		s.Logger.Fatal(err.Error())
 	}
-	return nil
 }
