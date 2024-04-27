@@ -1,7 +1,3 @@
--- name: GetMachineResourceUsage :many
-SELECT * FROM machine_resource_usage
-WHERE machine = $1;
-
 -- name: GetAggregatedMachineResourceUsage :many
 SELECT 
 time_bucket(CAST(@time_bucket::text AS INTERVAL), created_at)::timestamp AS bucket,

@@ -109,11 +109,3 @@ func flattenAndTranslateErrors(ve *validator.ValidationErrors) string {
 	s := b.String()
 	return s[:len(s) - 1]
 }
-
-func IntRequired(fl validator.FieldLevel) bool {
-	defer func() {
-		_ = recover();
-	}()
-	_ = fl.Field().Int()
-	return true
-}

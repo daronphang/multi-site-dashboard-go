@@ -11,7 +11,6 @@ import (
 type Querier interface {
 	CreateMachineResourceUsage(ctx context.Context, arg CreateMachineResourceUsageParams) (MachineResourceUsage, error)
 	GetAggregatedMachineResourceUsage(ctx context.Context, arg GetAggregatedMachineResourceUsageParams) ([]GetAggregatedMachineResourceUsageRow, error)
-	GetMachineResourceUsage(ctx context.Context, machine string) ([]MachineResourceUsage, error)
 	UpdateMachineResourceUsage(ctx context.Context, arg UpdateMachineResourceUsageParams) error
 }
 

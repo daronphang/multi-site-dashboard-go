@@ -40,18 +40,6 @@ func (h *handler) CreateSalesOrderPT(c echo.Context) error {
 	return c.JSON(http.StatusOK, p)
 }
 
-func (h *handler) GetMachineResourceUsageRT(c echo.Context) error {
-	machine := c.Param("machine")
-	ctx := c.Request().Context()
-	rv, err := h.Service.GetMachineResourceUsageRT(ctx, machine)
-	
-	if err != nil {
-		logger.Error(err.Error())
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return c.JSON(http.StatusOK, rv)
-}
-
 func (h *handler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	machine := c.Param("machine")
 	lookBackPeriod := c.QueryParam("lookBackPeriod") // '1 hour', '1 day', '23 hours'
@@ -73,7 +61,7 @@ func (h *handler) GetAggMachineResourceUsageRT(c echo.Context) error {
 }
 
 func (h *handler) CreateMachineResourceUsageRT(c echo.Context) error {
-	p := new(domain.MachineResourceUsage)
+	p := new(domain.CreateMachineResourceUsageParams)
 	if err := cv.ValidatePayload(c, p); err != nil {
 		logger.Error(err.Error())
 		return cv.NewHTTPValidationError(c, http.StatusBadRequest, err)

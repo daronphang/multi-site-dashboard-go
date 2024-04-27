@@ -90,10 +90,6 @@ func NewServer() (*Server, error) {
 
 	// Register custom handlers.
 	v := validator.New()
-	err = v.RegisterValidation("int_required", cv.IntRequired)
-	if err != nil {
-		fmt.Printf("error registering custom validation: %v", err.Error())
-	}
 	e.Validator = &cv.CustomValidator{Validator: v}
 
 	return &Server{Echo: e, Cfg: conf, Logger: logger, DB: db}, nil

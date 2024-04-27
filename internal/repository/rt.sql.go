@@ -97,38 +97,6 @@ func (q *Queries) GetAggregatedMachineResourceUsage(ctx context.Context, arg Get
 	return items, nil
 }
 
-const getMachineResourceUsage = `-- name: GetMachineResourceUsage :many
-SELECT id, machine, metric1, metric2, metric3, created_at FROM machine_resource_usage
-WHERE machine = $1
-`
-
-func (q *Queries) GetMachineResourceUsage(ctx context.Context, machine string) ([]MachineResourceUsage, error) {
-	rows, err := q.db.Query(ctx, getMachineResourceUsage, machine)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []MachineResourceUsage
-	for rows.Next() {
-		var i MachineResourceUsage
-		if err := rows.Scan(
-			&i.ID,
-			&i.Machine,
-			&i.Metric1,
-			&i.Metric2,
-			&i.Metric3,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateMachineResourceUsage = `-- name: UpdateMachineResourceUsage :exec
 UPDATE machine_resource_usage SET metric1 = $1 WHERE machine = $2
 `

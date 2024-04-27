@@ -1,10 +1,17 @@
 package domain
 
-type MachineResourceUsage struct {
+type CreateMachineResourceUsageParams struct {
 	Machine string `json:"machine" validate:"required"`
-	Metric1 int32  `json:"metric1" validate:"int_required"`
-	Metric2 int32  `json:"metric2" validate:"int_required"`
-	Metric3 int32  `json:"metric3" validate:"int_required"`
+	Metric1 *int32  `json:"metric1" validate:"required"`
+	Metric2 *int32  `json:"metric2" validate:"required"`
+	Metric3 *int32  `json:"metric3" validate:"required"`
+}
+
+type MachineResourceUsage struct {
+	Machine string `json:"machine"`
+	Metric1 int32  `json:"metric1"`
+	Metric2 int32  `json:"metric2"`
+	Metric3 int32  `json:"metric3"`
 	CreatedAt string `json:"createdAt"`
 }
 
@@ -22,7 +29,6 @@ type GetAggMachineResourceUsageParams struct {
 }
 
 type UpdateMachineResourceUsageParams struct {
-	Metric1 int32  `json:"metric1" validate:"required"`
+	Metric1 *int32  `json:"metric1" validate:"required"`
 	Machine string `json:"machine" validate:"required"`
 }
-
