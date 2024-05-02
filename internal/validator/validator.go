@@ -2,39 +2,37 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
-	"github.com/mcuadros/go-defaults"
 )
 
-type HTTPValidationError struct {
-	Message string `json:"message" default:"Invalid payload"`
-	Errors []string `json:"errors"`
-}
+
 
 type CustomValidator struct {
     Validator *validator.Validate
 }
 
-func NewHTTPValidationError(c echo.Context, code int, err error) error {
-	errorMsgs := strings.Split(err.Error(), ";")
-	hve := &HTTPValidationError{Errors: errorMsgs}
-	defaults.SetDefaults(hve)
-	return c.JSON(code, hve)
+var (
+	cv *CustomValidator
+)
+
+func init() {
+	v := validator.New()
+	cv = &CustomValidator{Validator: v}
 }
 
-// v is an argument that is a pointer to a value of the type that implements 
-// the interface you want to validate with.
-// Errors are handled in the routes.
-func ValidatePayload(c echo.Context, v interface{}) error {
-	if err := c.Bind(v); err != nil {
+func ProvideValidator() *CustomValidator {
+	return cv
+}
+
+func UnmarshalJSONAndValidate(p []byte, v interface{}) error {
+	if err := json.Unmarshal(p, v); err != nil {
 		return err
 	}
-	if err := c.Validate(v); err != nil {
+	if err := cv.Validate(v); err != nil {
 		return err
 	}
 	return nil

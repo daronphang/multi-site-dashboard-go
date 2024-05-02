@@ -34,7 +34,7 @@ func CustomRequestLogger(logger *zap.Logger) echo.MiddlewareFunc {
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			logger.Info(
 				"request logging",
-				zap.String("URI", v.URI),
+				zap.String("uri", v.URI),
 				zap.Int("status", v.Status),
 				zap.String("latency", v.Latency.String()),
 				zap.String("payload", c.Get("payload").(string)),

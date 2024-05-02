@@ -70,7 +70,6 @@ func encoder(o EncoderOutput) zapcore.Encoder {
 
 func logWriter(logDir string, filename string) zapcore.WriteSyncer {
 	fullPath := path.Join(logDir, filename)
-	fmt.Print(fullPath)
 	lumberjack := &lumberjack.Logger{
 		Filename:   fullPath,
 		MaxSize:    1000, // megabytes

@@ -1,4 +1,4 @@
-package uc
+package usecase
 
 import (
 	"multi-site-dashboard-go/internal/domain"
@@ -10,6 +10,8 @@ import (
 // Hence, treat the persistence model as a DTO, and map it to the domain model
 // in Use Cases.
 type persistenceModelAdapter struct {}
+
+var pma = persistenceModelAdapter{}
 
 func (pma persistenceModelAdapter) MachineResourceUsage(arg repo.MachineResourceUsage) domain.MachineResourceUsage {
 	return domain.MachineResourceUsage{

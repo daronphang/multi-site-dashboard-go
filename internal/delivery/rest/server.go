@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/delivery/rest/api/v1"
+	"multi-site-dashboard-go/internal/delivery/rest/handler"
+	cm "multi-site-dashboard-go/internal/delivery/rest/middleware"
+	"multi-site-dashboard-go/internal/delivery/stream"
 	"multi-site-dashboard-go/internal/repository"
-	api "multi-site-dashboard-go/internal/rest/api/v1"
-	cm "multi-site-dashboard-go/internal/rest/middleware"
-	cv "multi-site-dashboard-go/internal/rest/validator"
 	uc "multi-site-dashboard-go/internal/usecase"
+	cv "multi-site-dashboard-go/internal/validator"
 	"os"
-	"os/signal"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -35,7 +35,7 @@ func NewServer() (*Server, error) {
 	wd, _ := os.Getwd()
 
 	// Initialize dependencies.
-	conf, err := config.ProvideConfig()
+	cfg, err := config.ProvideConfig()
 	if err != nil {
 		msg := fmt.Sprintf("error reading config file: %v", err)
 		return nil, errors.New(msg)
@@ -67,52 +67,44 @@ func NewServer() (*Server, error) {
 		cm.CustomRequestLogger(logger),
 	)
 
-	// Create repositories.
+	// Create UseCase.
 	db, err := internal.WirePgConnPool(ctx)
 	if err != nil {
 		return nil, err
 	}
 	repo := repository.New(db)
+	sp := stream.New(cfg)
 
-	// Create handler.
-	svc := uc.NewUseCaseService(repo)
-	h := api.NewHandler(svc)
+	uc := uc.NewUseCaseService(repo, sp)
 
-	// Register routes.
+	// Create handler and register routes.
+	h := handler.NewHandler(uc)
 	baseGroup := e.Group("/api/v1")
-	h.RegisterBaseRoutes(baseGroup)
+	api.RegisterBaseRoutes(baseGroup, h)
 
 	ptGroup := baseGroup.Group("/pt")
-	h.RegisterPTRoutes(ptGroup)
+	api.RegisterPTRoutes(ptGroup, h)
 
 	rtGroup := baseGroup.Group("/rt")
-	h.RegisterRTRoutes(rtGroup)
+	api.RegisterRTRoutes(rtGroup, h)
 
 	// Register custom handlers.
-	v := validator.New()
-	e.Validator = &cv.CustomValidator{Validator: v}
+	e.Validator = cv.ProvideValidator()
 
-	return &Server{Echo: e, Cfg: conf, Logger: logger, DB: db}, nil
+	return &Server{
+		Echo: e,
+		Cfg: cfg,
+		Logger: logger,
+		DB: db,
+	}, nil
 }
 
-func (s *Server) Run() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer stop()
-
-	go func() {
-		fmt.Printf("starting ECHO server in port %v", s.Cfg.Port)
-		if err := s.Echo.Start(fmt.Sprintf(":%v", s.Cfg.Port)); err != nil {
-			s.Logger.Fatal(fmt.Sprintf("failed to start server: %v", err))
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
-	<-ctx.Done()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (s *Server) GracefulShutdown(ctx context.Context) {
 	fmt.Printf("performing graceful shutdown with timeout of %v...", 10*time.Second)
+
 	s.DB.Close()
+
 	if err := s.Echo.Shutdown(ctx); err != nil {
-		s.Logger.Fatal(err.Error())
+		s.Logger.Fatal(fmt.Sprintf("failed to shutdown echo server: %v", err.Error()))
 	}
 }

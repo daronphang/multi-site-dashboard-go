@@ -29,9 +29,7 @@ func (e Environment) String() string {
 }
 
 type KafkaConfig struct {
-	BrokerURL string `yaml:"BrokerURL"`
-	BrokerPort int  `yaml:"BrokerPort"`
-	Topic string `yaml:"Topic"`
+	BrokerAddresses string `yaml:"BrokerAddresses"` // localhost:9092,localhost:9093
 }
 
 type PostgresConfig struct {
@@ -47,6 +45,7 @@ type Config struct {
 	Port int `yaml:"port"`
 	LogDir string `yaml:"logDir"`
 	Postgres PostgresConfig `yaml:"postgres"`
+	Kafka KafkaConfig `yaml:"kafka"`
 }
 
 var syncOnceConfig sync.Once
