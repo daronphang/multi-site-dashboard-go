@@ -46,6 +46,8 @@ type Config struct {
 	LogDir string `yaml:"logDir"`
 	Postgres PostgresConfig `yaml:"postgres"`
 	Kafka KafkaConfig `yaml:"kafka"`
+	WebsocketPort int `yaml:"websocketPort"`
+	SSEPort int `yaml:"ssePort"`
 }
 
 var syncOnceConfig sync.Once

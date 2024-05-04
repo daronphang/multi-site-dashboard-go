@@ -1,17 +1,13 @@
-package stream
+package kafka
 
 import (
-	"context"
-	"fmt"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
 	"net"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 )
 
 var logger, _ = internal.WireLogger()
@@ -30,7 +26,7 @@ func (t Topic) String() string {
 	return "unknown"
 }
 
-func CreateKafkaTopics(cfg *config.Config) error {
+func CreateTopics(cfg *config.Config) error {
 	conn, err := kafka.Dial("tcp", strings.Split(cfg.Kafka.BrokerAddresses, ",")[0])
 	if err != nil {
 		return err
@@ -70,9 +66,3 @@ func CreateKafkaTopics(cfg *config.Config) error {
 	return nil
 }
 
-func GracefulShutdown(ctx context.Context, w KafkaWriter) {
-	fmt.Printf("performing graceful shutdown with timeout of %v...", 10*time.Second)
-	if err := w.writer.Close(); err != nil {
-		logger.Error("failed to close Kafka writer", zap.String("trace", err.Error()))
-	}
-}

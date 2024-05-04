@@ -1,5 +1,9 @@
 # Multi-site Dashboard Go
 
+## TODO
+
+- SwaggerAPI
+
 ## Architecture
 
 Web application is built using Clean Architecture by Uncle Bob.

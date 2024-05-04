@@ -1,11 +1,11 @@
-package stream
+package kafka
 
 import (
 	"context"
 	"strings"
 
 	"multi-site-dashboard-go/internal/config"
-	"multi-site-dashboard-go/internal/delivery/stream/handler"
+	"multi-site-dashboard-go/internal/delivery/kafka/handler"
 
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
@@ -15,7 +15,7 @@ import (
 // One consumer per thread/goroutine is the rule.
 // Creating more consumers than the number of partitions will result in unused consumers.
 
-func ConsumeMsgsFromMachineResourceUsageTopic(ctx context.Context, cfg *config.Config, h *handler.Handler) {
+func ConsumeMsgFromMachineResourceUsageTopic(ctx context.Context, cfg *config.Config, h *handler.KafkaHandler) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: strings.Split(cfg.Kafka.BrokerAddresses, ","),
 		GroupID: MachineResourceUsage.String(),

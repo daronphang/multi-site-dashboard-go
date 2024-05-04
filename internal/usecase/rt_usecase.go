@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"multi-site-dashboard-go/internal/domain"
 	repo "multi-site-dashboard-go/internal/repository"
 )
@@ -32,7 +33,26 @@ func (uc *UseCaseService) CreateMachineResourceUsage(ctx context.Context, arg *d
 	rv := pma.MachineResourceUsage(pmv)
 
 	// TODO: testing
-	if err := uc.StreamPublisher.PublishToMachineResourceUsage(ctx, *arg); err != nil {
+	if err := uc.EventPublisher.PublishDataToMachineResourceUsage(ctx, *arg); err != nil {
+		return domain.MachineResourceUsage{}, err
+	}
+	return rv, nil
+}
+
+func (uc *UseCaseService) CreateMachineResourceUsageAndBroadcast(ctx context.Context, arg *domain.CreateMachineResourceUsageParams) (domain.MachineResourceUsage, error) {
+	pmArg := repo.CreateMachineResourceUsageParams{Machine: arg.Machine, Metric1: *arg.Metric1, Metric2: *arg.Metric2, Metric3: *arg.Metric3}
+	pmv, err := uc.Repository.CreateMachineResourceUsage(ctx, pmArg)
+	if err != nil {
+		return domain.MachineResourceUsage{}, err
+	}
+	rv := pma.MachineResourceUsage(pmv)
+
+	// TODO: testing
+	data, err := json.Marshal(rv)
+	if err != nil {
+		return domain.MachineResourceUsage{}, err
+	}
+	if err := uc.Broadcaster.Broadcast(ctx, data); err != nil {
 		return domain.MachineResourceUsage{}, err
 	}
 	return rv, nil

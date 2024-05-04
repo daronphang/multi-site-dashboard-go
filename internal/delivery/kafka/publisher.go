@@ -1,4 +1,4 @@
-package stream
+package kafka
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 type KafkaWriter struct {
-	writer *kafka.Writer
+	Writer *kafka.Writer
 }
 
 // Methods of Writer are safe to use concurrently from multiple goroutines,
@@ -22,19 +22,19 @@ func New(cfg *config.Config) KafkaWriter {
 	w := &kafka.Writer{
 		Addr: kafka.TCP(strings.Split(cfg.Kafka.BrokerAddresses, ",")...),
 		RequiredAcks: kafka.RequireOne,
+		MaxAttempts: 5,
 	}
-	return KafkaWriter{writer: w}
+	return KafkaWriter{Writer: w}
 }
 
-func (w KafkaWriter) PublishToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error {
+func (w KafkaWriter) PublishDataToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error {
 	v, _ := json.Marshal(arg)
 	msg := kafka.Message{
 		Key: []byte("testKey"),
 		Value: v,
 		Topic: MachineResourceUsage.String(),
 	}
-	// TODO: retry message on failure with exponential backoff
-	if err := w.writer.WriteMessages(ctx, msg); err != nil {
+	if err := w.Writer.WriteMessages(ctx, msg); err != nil {
 		return err
 	}
 	return nil

@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) CreateSalesOrderPT(c echo.Context) error {
+func (h *RestHandler) CreateSalesOrderPT(c echo.Context) error {
 	c.Logger()
 	p := new(domain.PTSalesOrder)
 	if err := bindAndValidateRequestBody(c, p); err != nil {

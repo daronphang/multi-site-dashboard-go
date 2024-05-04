@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) GetAggMachineResourceUsageRT(c echo.Context) error {
+func (h *RestHandler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	machine := c.Param("machine")
 	lookBackPeriod := c.QueryParam("lookBackPeriod") // '1 hour', '1 day', '23 hours'
 	timeBucket := c.QueryParam("timeBucket") // '5 minutes', '1 hour', '1 day'
@@ -27,7 +27,7 @@ func (h *Handler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	return c.JSON(http.StatusOK, rv)
 }
 
-func (h *Handler) CreateMachineResourceUsageRT(c echo.Context) error {
+func (h *RestHandler) CreateMachineResourceUsageRT(c echo.Context) error {
 	p := new(domain.CreateMachineResourceUsageParams)
 	if err := bindAndValidateRequestBody(c, p); err != nil {
 		logger.Error(err.Error())

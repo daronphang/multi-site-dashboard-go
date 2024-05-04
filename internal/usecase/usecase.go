@@ -7,18 +7,22 @@ import (
 )
 
 // Each method specifies the topics/queues to publish to.
-type StreamPublisher interface {
-	PublishToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error
+type EventPublisher interface {
+	PublishDataToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error
+}
+
+type Broadcaster interface {
+	Broadcast(ctx context.Context, data []byte) error
 }
 
 type UseCaseService struct {
 	Repository repo.ExtQuerier
-	MessagePublisher interface{}
-	StreamPublisher StreamPublisher
+	EventPublisher EventPublisher
+	Broadcaster Broadcaster
 }
 
-func NewUseCaseService(repo repo.ExtQuerier, sp StreamPublisher) *UseCaseService {
-	return &UseCaseService{Repository: repo, StreamPublisher: sp}
+func NewUseCaseService(repo repo.ExtQuerier, ep EventPublisher, b Broadcaster) *UseCaseService {
+	return &UseCaseService{Repository: repo, EventPublisher: ep, Broadcaster: b}
 }
 
 func (uc *UseCaseService) PublishMsgToWebSocket() {
