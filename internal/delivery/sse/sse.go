@@ -7,25 +7,33 @@ import (
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
 	"net/http"
+	"sync"
 	"time"
 )
 
 var (
-	clients = make(map[chan string]struct{})
+	lock sync.Mutex
+	clients = make(map[*Client]struct{})
 	logger, _ = internal.WireLogger()
 )
 
 type SSE struct {
-	clients map[chan string]struct{}
+	clients map[*Client]struct{}
+}
+
+type Client struct {
+	eventChan chan string
 }
 
 func (sse SSE) Broadcast(ctx context.Context, data []byte) error {
+	// For sender, closing of channel is not needed once it is done.
+	// When SSE connection is closed, the client will be removed.
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 
 	for client := range sse.clients {
-		client <- string(data)
+		client.eventChan <- string(data)
 	}
 	return nil
 }
@@ -51,15 +59,8 @@ func SSEHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Content-Type", "text/event-stream")
 
-	eventChan := make(chan string)
-	clients[eventChan] = struct{}{}
-
-	// Remove the client when they disconnect.
-	defer func() {
-		logger.Info(fmt.Sprintf("client %v disconnected and removing from list", r.RemoteAddr))
-		delete(clients, eventChan) 
-		close(eventChan)
-	   }()
+	client := addClient()
+	defer removeClient(client, r)
 	
 	// Establish connection to client.
 	w.(http.Flusher).Flush()
@@ -68,11 +69,26 @@ func SSEHandler(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-r.Context().Done():
 			return
-		case data := <- eventChan:
+		case data := <- client.eventChan:
 			fmt.Fprintf(w, "data: %s\n\n", data)
 			w.(http.Flusher).Flush()
 		default:
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
+}
+
+func addClient() *Client {
+	lock.Lock()
+	defer lock.Unlock()
+	client := &Client{eventChan: make(chan string)}
+	clients[client] = struct{}{}
+	return client
+}
+
+func removeClient(client *Client, r *http.Request) {
+	logger.Info(fmt.Sprintf("client %v disconnected from SSE and removing from list", r.RemoteAddr))
+	lock.Lock()
+	defer lock.Unlock()
+	delete(clients, client) 
 }

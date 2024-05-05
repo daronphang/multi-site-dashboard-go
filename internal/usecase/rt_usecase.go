@@ -47,8 +47,7 @@ func (uc *UseCaseService) CreateMachineResourceUsageAndBroadcast(ctx context.Con
 	}
 	rv := pma.MachineResourceUsage(pmv)
 
-	// TODO: testing
-	data, err := json.Marshal(rv)
+	data, err := json.Marshal(arg)
 	if err != nil {
 		return domain.MachineResourceUsage{}, err
 	}

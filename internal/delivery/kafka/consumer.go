@@ -18,7 +18,7 @@ import (
 func ConsumeMsgFromMachineResourceUsageTopic(ctx context.Context, cfg *config.Config, h *handler.KafkaHandler) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: strings.Split(cfg.Kafka.BrokerAddresses, ","),
-		GroupID: MachineResourceUsage.String(),
+		GroupID: cfg.Kafka.MachineResourceUsageGroupID, // Needs to be different if running multiple pods.
 		Topic: MachineResourceUsage.String(),
 	})
 	for {

@@ -7,6 +7,7 @@ import (
 
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/delivery/sse"
+	"multi-site-dashboard-go/internal/delivery/websocket"
 	uc "multi-site-dashboard-go/internal/usecase"
 )
 
@@ -25,7 +26,11 @@ func (h *RestHandler) Heartbeat(c echo.Context) error {
 }
 
 func (h *RestHandler) SSE(c echo.Context) error {
-	c.Request()
 	sse.SSEHandler(c.Response().Writer, c.Request())
+	return nil
+}
+
+func (h *RestHandler) Websocket(c echo.Context) error {
+	websocket.WebsocketHandler(c.Response().Writer, c.Request())
 	return nil
 }

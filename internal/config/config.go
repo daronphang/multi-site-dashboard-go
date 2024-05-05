@@ -30,6 +30,7 @@ func (e Environment) String() string {
 
 type KafkaConfig struct {
 	BrokerAddresses string `yaml:"BrokerAddresses"` // localhost:9092,localhost:9093
+	MachineResourceUsageGroupID string `yaml:"machineResourceUsageGroupId"`
 }
 
 type PostgresConfig struct {

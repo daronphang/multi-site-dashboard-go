@@ -8,7 +8,7 @@ import (
 	"multi-site-dashboard-go/internal/delivery/kafka"
 	kh "multi-site-dashboard-go/internal/delivery/kafka/handler"
 	"multi-site-dashboard-go/internal/delivery/rest"
-	"multi-site-dashboard-go/internal/delivery/sse"
+	"multi-site-dashboard-go/internal/delivery/websocket"
 	"multi-site-dashboard-go/internal/repository"
 	uc "multi-site-dashboard-go/internal/usecase"
 	"os"
@@ -43,8 +43,9 @@ func main() {
 	}
 	repo := repository.New(db)
 	kw := kafka.New(cfg)
-	b := sse.New()
-	uc := uc.NewUseCaseService(repo, kw, b)
+	// b := sse.New()
+	ws := websocket.New()
+	uc := uc.NewUseCaseService(repo, kw, ws)
 
 	// Create server.
 	s, err := rest.NewServer(ctx, cfg, logger, uc)
@@ -64,7 +65,7 @@ func main() {
 	go func() {
 		fmt.Printf("starting ECHO server in port %v", cfg.Port)
 		if err := s.Echo.Start(fmt.Sprintf(":%v", cfg.Port)); err != nil {
-			logger.Fatal("failed to start server", zap.String("trace", err.Error()))
+			logger.Fatal("server error", zap.String("trace", err.Error()))
 		}
 	}()
 

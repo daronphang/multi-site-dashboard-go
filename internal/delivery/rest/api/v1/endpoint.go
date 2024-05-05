@@ -9,6 +9,7 @@ import (
 func RegisterBaseRoutes(g *echo.Group, h * handler.RestHandler) {
 	g.GET("/heartbeat", h.Heartbeat)
 	g.GET("/sse", h.SSE)
+	g.GET("/ws", h.Websocket)
 }
 
 func RegisterPTRoutes(g *echo.Group, h *handler.RestHandler) {

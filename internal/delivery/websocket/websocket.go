@@ -1,19 +1,27 @@
 package websocket
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"io"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
+const (
+	writeWait = 10 * time.Second
+)
+
 var (
-	conn *websocket.Conn
+	wg sync.WaitGroup
+	lock sync.Mutex
+	clients = make(map[*Client]struct{})
 	logger, _ = internal.WireLogger()
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -22,24 +30,38 @@ var (
 	}
 )
 
-func ProvideWebsocketConn() (*websocket.Conn, error) {
-	if conn == nil {
-		return nil, errors.New("websocket connection has not been established")
-	}
-	return conn, nil
+type Client struct {
+	conn *websocket.Conn
+	eventChan chan []byte
 }
 
-func StartHTTPServer() {
-	cfg, err := config.ProvideConfig()
-	if err != nil {
-		logger.Fatal(err.Error())
+type Websocket struct {
+	clients map[*Client]struct{}
+}
+
+func New() Websocket {
+	return Websocket{clients: clients}
+}
+
+
+func (ws Websocket) Broadcast(ctx context.Context, data []byte) error {
+	// For sender, closing of channel is not needed once it is done.
+	// When websocket connection is closed, the client will be removed.
+	if ctx.Err() != nil {
+		return ctx.Err()
 	}
+
+	for client := range ws.clients {
+		client.eventChan <- data
+	}
+	return nil
+}
+
+func NewHTTPServer(ctx context.Context, cfg *config.Config) *http.Server {
+	s := &http.Server{Addr: fmt.Sprintf(":%v", cfg.WebsocketPort)}
 	http.HandleFunc("/", heartbeatHandler)
 	http.HandleFunc("/ws", WebsocketHandler)
-
-	if err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.WebsocketPort), nil); err != nil {
-		logger.Fatal(err.Error())
-	}
+	return s
 }
 
 func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,27 +74,67 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
         logger.Error("unable to establish websocket connection", zap.String("trace", err.Error()))
         return
     }
-	reader(conn)
+
+	client := addClient(conn)
+	defer removeClient(client, r)
+
+	wg.Add(2)
+	go reader(client)
+	go writer(client)
+	wg.Wait()
 }
 
-func reader(conn *websocket.Conn) {
+func addClient(conn *websocket.Conn) *Client {
+	lock.Lock()
+	defer lock.Unlock()
+	client := &Client{conn: conn, eventChan: make(chan []byte)}
+	clients[client] = struct{}{}
+	return client
+}
+
+func removeClient(client *Client, r *http.Request) {
+	logger.Info(fmt.Sprintf("client %v disconnected from websocket and removing from list", r.RemoteAddr))
+	lock.Lock()
+	defer lock.Unlock()
+	delete(clients, client) 
+}
+
+func reader(client *Client) {
+	defer wg.Done()
 	for {
-		_, p, err := conn.ReadMessage()
+		_, p, err := client.conn.ReadMessage()
 		if err != nil {
-			logger.Error("unable to establish websocket connection", zap.String("trace", err.Error()))
-			return
-		}
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure){
+				logger.Error("unexpected websocket close error", zap.String("trace", err.Error()))
+			}
+			break
+		} 
 		fmt.Println(string(p))
 	}
 }
 
-func WriteMsgToWebsocket(data []byte) error {
-	conn, err := ProvideWebsocketConn()
-	if err != nil {
-		return err
+func writer(client *Client) {
+	defer func() {
+		wg.Done()
+		if err := client.conn.Close(); err != nil {
+			logger.Error("unable to close websocket connection", zap.String("trace", err.Error()))
+		}
+	}()
+	for {
+		select {
+		case data, ok := <- client.eventChan:
+			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if !ok {
+				// Channel is closed.
+				return 
+			}
+			_ = client.conn.WriteMessage(websocket.TextMessage, data)
+		default:
+			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				// Connection is closed.
+				return
+			}
+		}
 	}
-	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		return err
-	}
-	return nil
 }
