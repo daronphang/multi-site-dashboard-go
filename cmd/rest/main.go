@@ -8,7 +8,7 @@ import (
 	"multi-site-dashboard-go/internal/delivery/kafka"
 	kh "multi-site-dashboard-go/internal/delivery/kafka/handler"
 	"multi-site-dashboard-go/internal/delivery/rest"
-	"multi-site-dashboard-go/internal/delivery/websocket"
+	ws "multi-site-dashboard-go/internal/delivery/websocket"
 	"multi-site-dashboard-go/internal/repository"
 	uc "multi-site-dashboard-go/internal/usecase"
 	"os"
@@ -44,7 +44,7 @@ func main() {
 	repo := repository.New(db)
 	kw := kafka.New(cfg)
 	// b := sse.New()
-	ws := websocket.New()
+	ws := ws.New()
 	uc := uc.NewUseCaseService(repo, kw, ws)
 
 	// Create server.
