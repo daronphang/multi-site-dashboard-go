@@ -9,15 +9,21 @@ import (
 	"multi-site-dashboard-go/internal/delivery/rest/api/v1"
 	rh "multi-site-dashboard-go/internal/delivery/rest/handler"
 	cm "multi-site-dashboard-go/internal/delivery/rest/middleware"
+	"net/http"
 
 	uc "multi-site-dashboard-go/internal/usecase"
 	cv "multi-site-dashboard-go/internal/validator"
 	"os"
 
+	_ "multi-site-dashboard-go/docs"
+
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rakyll/statik/fs"
 	"go.uber.org/zap"
+
+	_ "multi-site-dashboard-go/statik"
 )
 
 type Server struct {
@@ -59,6 +65,16 @@ func NewServer(ctx context.Context, cfg *config.Config, logger *zap.Logger, uc *
 
 	rtGroup := baseGroup.Group("/rt")
 	api.RegisterRTRoutes(rtGroup, rh)
+
+	// Register Swagger.
+	statikFS, err := fs.New()
+	if err != nil {
+		return nil, err
+	}
+	staticServer := http.FileServer(statikFS)
+	sh := http.StripPrefix("/api/v1/swagger/", staticServer)
+	eh := echo.WrapHandler(sh)
+	baseGroup.GET("/swagger/*", eh)
 
 	// Register custom handlers.
 	e.Validator = cv.ProvideValidator()

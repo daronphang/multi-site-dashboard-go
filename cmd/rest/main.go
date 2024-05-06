@@ -15,6 +15,8 @@ import (
 	"os/signal"
 	"time"
 
+	_ "multi-site-dashboard-go/docs"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

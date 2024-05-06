@@ -1,9 +1,5 @@
 # Multi-site Dashboard Go
 
-## TODO
-
-- SwaggerAPI
-
 ## Architecture
 
 Web application is built using Clean Architecture by Uncle Bob.
@@ -22,7 +18,7 @@ $ git clone https://tools.mf.platform/bitbucket/scm/dash/multi-site-dashboard-go
 
 ### Dependencies
 
-1. Install depedencies
+1. Install dependencies
 
 ```sh
 $ go mod download
@@ -73,6 +69,55 @@ $ psql --version
 
 https://www.pgadmin.org/download/pgadmin-4-macos/
 
+### sqlc
+
+1. Install sqlc
+
+```sh
+$ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+```
+
+### Swagger
+
+https://ribice.medium.com/serve-swaggerui-within-your-golang-application-5486748a5ed4
+
+1. Install Swagger
+
+```sh
+$ go install github.com/go-swagger/go-swagger/cmd/swagger
+```
+
+2. Clone swagger-ui source into any directory
+
+```sh
+$ cd path/to/any/directory
+$ git clone https://github.com/swagger-api/swagger-ui.git
+```
+
+3. Copy dist folder from swagger-ui to swaggerui folder in source
+
+```sh
+cp -a path/to/swagger-ui/dist/ /path/to/root/directory/swaggerui
+```
+
+4. Change url in swagger-initializer.js
+
+```
+url: "./swagger.yaml"
+```
+
+5. Install statik for Go compilation into binary
+
+```sh
+$ go install github.com/rakyll/statik
+```
+
+6. Compile static files
+
+```sh
+$ statik -src path/to/root/directory/swaggerui
+```
+
 ## Development
 
 ### Wire
@@ -107,7 +152,18 @@ $ sqlc generate
 1. Run server
 
 ```sh
-$ go run cmd/main.go
+$ cd path/to/root/directory
+$ go run cmd/rest/main.go
+```
+
+### Swagger
+
+If serving using Echo, can navigate to `/api/v1/swagger/index.html`.
+
+```sh
+$ cd path/to/root/directory
+$ swagger generate spec -o ./swaggerui/swagger.yaml --scan-models
+$ swagger serve ./docs/swagger.yaml --flavor swagger
 ```
 
 ## Deployment

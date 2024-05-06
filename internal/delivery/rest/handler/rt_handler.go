@@ -7,6 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// swagger:route GET /machines/{machine} ResourceTracking GetAggMachineResourceUsage
+// responses:
+// 	200: []AggMachineResourceUsage
+// 	400: HTTPValidationError
 func (h *RestHandler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	machine := c.Param("machine")
 	lookBackPeriod := c.QueryParam("lookBackPeriod") // '1 hour', '1 day', '23 hours'
@@ -27,6 +31,10 @@ func (h *RestHandler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	return c.JSON(http.StatusOK, rv)
 }
 
+// swagger:route POST /machine ResourceTracking CreateMachineResourceUsage
+// responses:
+// 	200: MachineResourceUsage
+// 	400: HTTPValidationError
 func (h *RestHandler) CreateMachineResourceUsageRT(c echo.Context) error {
 	p := new(domain.CreateMachineResourceUsageParams)
 	if err := bindAndValidateRequestBody(c, p); err != nil {
