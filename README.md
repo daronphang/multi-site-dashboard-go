@@ -163,6 +163,7 @@ If serving using Echo, can navigate to `/api/v1/swagger/index.html`.
 ```sh
 $ cd path/to/root/directory
 $ swagger generate spec -o ./swaggerui/swagger.yaml --scan-models
+$ statik -src path/to/root/directory/swaggerui # Rerun statik.
 $ swagger serve ./docs/swagger.yaml --flavor swagger
 ```
 

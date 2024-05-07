@@ -8,13 +8,14 @@ import (
 )
 
 // swagger:route GET /machines/{machine} ResourceTracking GetAggMachineResourceUsage
+// Group MachineResourceUsage time series by timeBucket within lookBackPeriod from today and return aggregated median values
 // responses:
-// 	200: []AggMachineResourceUsage
-// 	400: HTTPValidationError
+// 	200: body:[]AggMachineResourceUsage
+// 	400: body:HTTPValidationError
 func (h *RestHandler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	machine := c.Param("machine")
-	lookBackPeriod := c.QueryParam("lookBackPeriod") // '1 hour', '1 day', '23 hours'
-	timeBucket := c.QueryParam("timeBucket") // '5 minutes', '1 hour', '1 day'
+	lookBackPeriod := c.QueryParam("lookBackPeriod") 
+	timeBucket := c.QueryParam("timeBucket") 
 	ctx := c.Request().Context()
 
 	p := &domain.GetAggMachineResourceUsageParams{Machine: machine, TimeBucket: timeBucket, LookBackPeriod: lookBackPeriod}
@@ -31,10 +32,23 @@ func (h *RestHandler) GetAggMachineResourceUsageRT(c echo.Context) error {
 	return c.JSON(http.StatusOK, rv)
 }
 
-// swagger:route POST /machine ResourceTracking CreateMachineResourceUsage
+// swagger:operation POST /machine ResourceTracking CreateMachineResourceUsage
+// Add a time series entry for MachineResourceUsage
+// ---
+// parameters:
+// - name: MachineResourceUsageParam
+//   in: body
+//   schema:
+//     $ref: "#/definitions/CreateMachineResourceUsage"
 // responses:
-// 	200: MachineResourceUsage
-// 	400: HTTPValidationError
+//   "200":
+//     description: MachineResourceUsage
+//     schema:
+//       $ref: '#/definitions/MachineResourceUsage'
+//   "400":
+//     description: HTTPValidationError
+//     schema:
+// 	     $ref: '#/definitions/HTTPValidationError'
 func (h *RestHandler) CreateMachineResourceUsageRT(c echo.Context) error {
 	p := new(domain.CreateMachineResourceUsageParams)
 	if err := bindAndValidateRequestBody(c, p); err != nil {

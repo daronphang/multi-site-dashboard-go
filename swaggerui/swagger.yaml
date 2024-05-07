@@ -21,6 +21,26 @@ definitions:
                 x-go-name: Metric3
         type: object
         x-go-package: multi-site-dashboard-go/internal/domain
+    CreateMachineResourceUsage:
+        properties:
+            machine:
+                type: string
+                x-go-name: Machine
+            metric1:
+                format: int32
+                type: integer
+                x-go-name: Metric1
+            metric2:
+                format: int32
+                type: integer
+                x-go-name: Metric2
+            metric3:
+                format: int32
+                type: integer
+                x-go-name: Metric3
+        type: object
+        x-go-name: CreateMachineResourceUsageParams
+        x-go-package: multi-site-dashboard-go/internal/domain
     HTTPValidationError:
         properties:
             errors:
@@ -61,28 +81,13 @@ info:
 paths:
     /machine:
         post:
+            description: Add a time series entry for MachineResourceUsage
             operationId: CreateMachineResourceUsage
             parameters:
                 - in: body
-                  name: machine
+                  name: MachineResourceUsageParam
                   schema:
-                    type: string
-                  x-go-name: Machine
-                - format: int32
-                  in: query
-                  name: metric1
-                  type: integer
-                  x-go-name: Metric1
-                - format: int32
-                  in: query
-                  name: metric2
-                  type: integer
-                  x-go-name: Metric2
-                - format: int32
-                  in: query
-                  name: metric3
-                  type: integer
-                  x-go-name: Metric3
+                    $ref: '#/definitions/CreateMachineResourceUsage'
             responses:
                 "200":
                     description: MachineResourceUsage
@@ -96,6 +101,7 @@ paths:
                 - ResourceTracking
     /machines/{machine}:
         get:
+            description: Group MachineResourceUsage time series by timeBucket within lookBackPeriod from today and aggregate median
             operationId: GetAggMachineResourceUsage
             parameters:
                 - in: path

@@ -7,7 +7,7 @@ import (
 	"github.com/mcuadros/go-defaults"
 )
 
-//swagger:model HTTPValidationError
+// swagger:model HTTPValidationError
 type HTTPValidationError struct {
 	Message string `json:"message" default:"Invalid payload"`
 	Errors []string `json:"errors"`
