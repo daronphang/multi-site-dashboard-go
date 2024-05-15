@@ -1,0 +1,21 @@
+with-expecter: true
+packages:
+  multi-site-dashboard-go/internal/repository:
+    interfaces:
+      ExtQuerier:
+        config:
+          dir: internal/repository
+          filename: mock_ext_querier.go
+          inpackage: true
+  multi-site-dashboard-go/internal/usecase:
+    interfaces:
+      EventPublisher:
+        config:
+          dir: internal/usecase
+          filename: mock_event_publisher.go
+          inpackage: true
+      Broadcaster:
+        config:
+          dir: internal/usecase
+          filename: mock_broadcaster.go
+          inpackage: true

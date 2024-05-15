@@ -1,21 +1,18 @@
 package handler
 
 import (
-	"strings"
-
 	"github.com/labstack/echo/v4"
 	"github.com/mcuadros/go-defaults"
 )
 
 // swagger:model HTTPValidationError
 type HTTPValidationError struct {
-	Message string `json:"message" default:"Invalid payload"`
-	Errors []string `json:"errors"`
+	Message string `json:"message" default:"validation error"`
+	Error string `json:"error"`
 }
 
 func newHTTPValidationError(c echo.Context, code int, err error) error {
-	errorMsgs := strings.Split(err.Error(), ";")
-	hve := &HTTPValidationError{Errors: errorMsgs}
+	hve := &HTTPValidationError{Error: err.Error()}
 	defaults.SetDefaults(hve)
 	return c.JSON(code, hve)
 }

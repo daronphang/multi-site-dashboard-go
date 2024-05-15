@@ -55,7 +55,7 @@ func (h *RestHandler) CreateMachineResourceUsageRT(c echo.Context) error {
 		logger.Error(err.Error())
 		return newHTTPValidationError(c, http.StatusBadRequest, err)
 	}
-	rv, err := h.UseCase.CreateMachineResourceUsage(c.Request().Context(), p)
+	rv, err := h.UseCase.CreateMachineResourceUsageRT(c.Request().Context(), p)
 	if err != nil {
 		logger.Error(err.Error())
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

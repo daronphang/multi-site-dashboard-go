@@ -8,7 +8,7 @@ import (
 
 // Each method specifies the topics/queues to publish to.
 type EventPublisher interface {
-	PublishDataToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error
+	PublishMachineResourceUsageEvent(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error
 }
 
 type Broadcaster interface {
@@ -25,6 +25,4 @@ func NewUseCaseService(repo repo.ExtQuerier, ep EventPublisher, b Broadcaster) *
 	return &UseCaseService{Repository: repo, EventPublisher: ep, Broadcaster: b}
 }
 
-func (uc *UseCaseService) PublishMsgToWebSocket() {
-
-}
+func (uc *UseCaseService) PublishMsgToWebSocket() {}

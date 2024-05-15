@@ -27,7 +27,7 @@ func New(cfg *config.Config) KafkaWriter {
 	return KafkaWriter{Writer: w}
 }
 
-func (w KafkaWriter) PublishDataToMachineResourceUsage(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error {
+func (w KafkaWriter) PublishMachineResourceUsageEvent(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error {
 	v, _ := json.Marshal(arg)
 	msg := kafka.Message{
 		Key: []byte("testKey"),

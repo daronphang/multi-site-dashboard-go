@@ -1,4 +1,4 @@
-package middleware
+package customvalidator
 
 import (
 	"bytes"
@@ -8,8 +8,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 )
-
-
 
 type CustomValidator struct {
     Validator *validator.Validate
@@ -102,8 +100,8 @@ func msgForTag(fe validator.FieldError) string {
 func flattenAndTranslateErrors(ve *validator.ValidationErrors) string {
 	b := new(bytes.Buffer)
 	for _, fe := range *ve {
-		fmt.Fprintf(b, "%s: %s;", fe.Field(), msgForTag(fe))
+		fmt.Fprintf(b, "%s: %s\n", fe.Field(), msgForTag(fe))
 	}
 	s := b.String()
-	return s[:len(s) - 1]
+	return s
 }

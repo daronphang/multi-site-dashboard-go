@@ -14,7 +14,7 @@ func (h *KafkaHandler) CreateMachineResourceUsageAndBroadcast(ctx context.Contex
 	if err := cv.UnmarshalJSONAndValidate(m.Value, p); err != nil {
 		return err
 	}
-	_, err := h.UseCase.CreateMachineResourceUsageAndBroadcast(ctx, p)
+	_, err := h.UseCase.CreateMachineResourceUsageAndBroadcastRT(ctx, p)
 	if err != nil {
 		return err
 	}

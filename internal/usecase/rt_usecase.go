@@ -24,7 +24,7 @@ func (uc *UseCaseService) GetAggMachineResourceUsageRT(ctx context.Context, arg 
 	return rv, nil
 }
 
-func (uc *UseCaseService) CreateMachineResourceUsage(ctx context.Context, arg *domain.CreateMachineResourceUsageParams) (domain.MachineResourceUsage, error) {
+func (uc *UseCaseService) CreateMachineResourceUsageRT(ctx context.Context, arg *domain.CreateMachineResourceUsageParams) (domain.MachineResourceUsage, error) {
 	pmArg := repo.CreateMachineResourceUsageParams{Machine: arg.Machine, Metric1: *arg.Metric1, Metric2: *arg.Metric2, Metric3: *arg.Metric3}
 	pmv, err := uc.Repository.CreateMachineResourceUsage(ctx, pmArg)
 	if err != nil {
@@ -33,13 +33,13 @@ func (uc *UseCaseService) CreateMachineResourceUsage(ctx context.Context, arg *d
 	rv := pma.MachineResourceUsage(pmv)
 
 	// TODO: testing
-	if err := uc.EventPublisher.PublishDataToMachineResourceUsage(ctx, *arg); err != nil {
+	if err := uc.EventPublisher.PublishMachineResourceUsageEvent(ctx, *arg); err != nil {
 		return domain.MachineResourceUsage{}, err
 	}
 	return rv, nil
 }
 
-func (uc *UseCaseService) CreateMachineResourceUsageAndBroadcast(ctx context.Context, arg *domain.CreateMachineResourceUsageParams) (domain.MachineResourceUsage, error) {
+func (uc *UseCaseService) CreateMachineResourceUsageAndBroadcastRT(ctx context.Context, arg *domain.CreateMachineResourceUsageParams) (domain.MachineResourceUsage, error) {
 	pmArg := repo.CreateMachineResourceUsageParams{Machine: arg.Machine, Metric1: *arg.Metric1, Metric2: *arg.Metric2, Metric3: *arg.Metric3}
 	pmv, err := uc.Repository.CreateMachineResourceUsage(ctx, pmArg)
 	if err != nil {

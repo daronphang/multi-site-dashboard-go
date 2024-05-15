@@ -174,3 +174,13 @@ $ swagger serve ./docs/swagger.yaml --flavor swagger
 1. Deploy using PostgreSQL Kubernetes operators to simplify installation, configuration and lifecycle
 
 https://github.com/zalando/postgres-operator/tree/master
+
+## Testing
+
+### Mockery
+
+```sh
+$ brew install mockery
+$ cd path/to/root/directory
+$ mockery # reads from .mockery.yaml config file
+```
