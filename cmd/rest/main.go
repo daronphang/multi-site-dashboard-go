@@ -50,7 +50,7 @@ func main() {
 	uc := uc.NewUseCaseService(repo, kw, ws)
 
 	// Create server.
-	s, err := rest.NewServer(ctx, cfg, logger, uc)
+	s, err := rest.NewServer(ctx, logger, uc)
 	if err != nil {
 		logger.Fatal("error creating server", zap.String("trace", err.Error()))
 	}

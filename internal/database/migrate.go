@@ -2,6 +2,7 @@ package database
 
 import (
 	"path"
+	"runtime"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -10,9 +11,10 @@ import (
 )
 
 
-func ProvidePgMigrateInstance(driver database.Driver, wd string) (*migrate.Migrate, error) {
+func ProvidePgMigrateInstance(driver database.Driver) (*migrate.Migrate, error) {
+	_, filename, _, _ := runtime.Caller(0)
 	m, err := migrate.NewWithDatabaseInstance(
-		path.Join("file:///", wd, "internal/database/migration"), 
+		path.Join("file:///", path.Dir(filename), "migration"), 
 		"postgres", 
 		driver,
 	)

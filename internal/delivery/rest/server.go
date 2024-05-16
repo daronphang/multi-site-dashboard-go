@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"multi-site-dashboard-go/internal"
-	"multi-site-dashboard-go/internal/config"
 	"multi-site-dashboard-go/internal/delivery/rest/api/v1"
 	rh "multi-site-dashboard-go/internal/delivery/rest/handler"
 	cm "multi-site-dashboard-go/internal/delivery/rest/middleware"
@@ -13,7 +12,6 @@ import (
 
 	uc "multi-site-dashboard-go/internal/usecase"
 	cv "multi-site-dashboard-go/internal/validator"
-	"os"
 
 	_ "multi-site-dashboard-go/docs"
 
@@ -30,11 +28,9 @@ type Server struct {
 	Echo *echo.Echo
 }
 
-func NewServer(ctx context.Context, cfg *config.Config, logger *zap.Logger, uc *uc.UseCaseService) (*Server, error) {
-	wd, _ := os.Getwd()
-
+func NewServer(ctx context.Context, logger *zap.Logger, uc *uc.UseCaseService) (*Server, error) {
 	// Migrate db.
-	m, err := internal.WirePgMigrateInstance(wd)
+	m, err := internal.WirePgMigrateInstance()
 	if err != nil {
 		msg := fmt.Sprintf("error creating DB migration instance: %v", err)
 		return nil, errors.New(msg)

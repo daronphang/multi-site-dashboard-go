@@ -41,7 +41,7 @@ func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func WirePgMigrateInstance(wd string) (*migrate.Migrate, error) {
+func WirePgMigrateInstance() (*migrate.Migrate, error) {
 	configConfig, err := config.ProvideConfig()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func WirePgMigrateInstance(wd string) (*migrate.Migrate, error) {
 	if err != nil {
 		return nil, err
 	}
-	migrateMigrate, err := database.ProvidePgMigrateInstance(driver, wd)
+	migrateMigrate, err := database.ProvidePgMigrateInstance(driver)
 	if err != nil {
 		return nil, err
 	}

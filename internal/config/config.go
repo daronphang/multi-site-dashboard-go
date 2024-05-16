@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path"
+	"runtime"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -66,22 +67,23 @@ func ProvideConfig() (*Config, error) {
 }
 
 func readConfigFromFile() error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
+	env := os.Getenv("GO_ENV")
+	_, filename, _, _ := runtime.Caller(0)
+	if env == "TESTING" {
+		viper.SetConfigName("config.test")
+	} else {
+		viper.SetConfigName("config")
 	}
-	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(cwd)
-	viper.AddConfigPath(path.Join(cwd, "config")) 
-	err = viper.ReadInConfig()
+	viper.AddConfigPath(path.Dir(filename))
+	err := viper.ReadInConfig()
 	if err != nil {
 		return err
 	}
 
 	viper.SetDefault("environment", Development.String())
 	viper.SetDefault("port", 8000)
-	viper.SetDefault("logDir", path.Join(cwd, "log"))
+	viper.SetDefault("logDir", path.Join(path.Dir(filename), "../../log"))
 
 	err = viper.Unmarshal(&config)
 	if err != nil {

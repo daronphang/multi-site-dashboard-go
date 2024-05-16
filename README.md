@@ -130,8 +130,8 @@ https://github.com/google/wire
 
 ```sh
 $ cd path/to/root/directory
-$ wire internal
-$ go generate internal # once wire_gen.go is created, can regenerate using this
+$ wire ./internal
+$ go generate ./internal # once wire_gen.go is created, can regenerate using this
 ```
 
 ### sqlc
@@ -177,10 +177,33 @@ https://github.com/zalando/postgres-operator/tree/master
 
 ## Testing
 
+Before running tests, set environment variable GO_ENV to 'TESTING'.
+
+```sh
+$ export GO_ENV=TESTING
+```
+
+### TimescaleDB
+
+1. Install as a container
+
+https://docs.timescale.com/self-hosted/latest/install/installation-docker/
+
+```sh
+$ docker run -d --name timescaledbtest -p 2345:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg16
+```
+
 ### Mockery
 
 ```sh
 $ brew install mockery
 $ cd path/to/root/directory
 $ mockery # reads from .mockery.yaml config file
+```
+
+### Running tests
+
+```sh
+$ cd path/to/root/directory
+$ go test ./... -v
 ```
