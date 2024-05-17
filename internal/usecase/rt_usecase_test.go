@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestGetAggMachineResourceUsageRT(t *testing.T) {
+func TestUseCaseGetAggMachineResourceUsageRT(t *testing.T) {
 	// Setup usecase.
 	ctx := context.Background()
 	ucm := ucmock.ProvideUseCaseMocks(t)
@@ -53,7 +53,7 @@ func TestGetAggMachineResourceUsageRT(t *testing.T) {
 	})
 }
 
-func TestCreateMachineResourceUsageRT(t *testing.T) {
+func TestUseCaseCreateMachineResourceUsageRT(t *testing.T) {
 	// Setup usecase.
 	ctx := context.Background()
 	ucm := ucmock.ProvideUseCaseMocks(t)
@@ -97,7 +97,7 @@ func TestCreateMachineResourceUsageRT(t *testing.T) {
 	})
 }
 
-func TestCreateMachineResourceUsageAndBroadcastRT(t *testing.T) {
+func TestUseCaseCreateMachineResourceUsageAndBroadcastRT(t *testing.T) {
 	ctx := context.Background()
 	ucm := ucmock.ProvideUseCaseMocks(t)
 	uc := NewUseCaseService(ucm.Repository, ucm.EventPublisher, ucm.Broadcaster)

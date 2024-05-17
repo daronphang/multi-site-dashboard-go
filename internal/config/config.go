@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -67,7 +68,7 @@ func ProvideConfig() (*Config, error) {
 }
 
 func readConfigFromFile() error {
-	env := os.Getenv("GO_ENV")
+	env := strings.ToUpper(os.Getenv("GO_ENV"))
 	_, filename, _, _ := runtime.Caller(0)
 	if env == "TESTING" {
 		viper.SetConfigName("config.test")

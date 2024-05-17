@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/database"
 	"multi-site-dashboard-go/internal/delivery/kafka"
 	ws "multi-site-dashboard-go/internal/delivery/websocket"
 	"multi-site-dashboard-go/internal/domain"
@@ -19,6 +21,7 @@ import (
 	uc "multi-site-dashboard-go/internal/usecase"
 	cv "multi-site-dashboard-go/internal/validator"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,50 +36,81 @@ var (
 	tbs *TestBedServer
 )
 
-func ProvideTestBedServer(t *testing.T) *TestBedServer {
+func CleanupDatabase(cfg *config.Config) error {
+	conn, err := database.ProvidePgConn(cfg)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Exec("DROP DATABASE IF EXISTS " + pgx.Identifier{cfg.Postgres.DBName}.Sanitize())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ProvideTestBedServer(t *testing.T) (*TestBedServer, error) {
 	// For integration testing.
+	var syncErr error
 	syncOnce.Do(func() {
 		ctx := context.Background()
 
 		cfg, err := config.ProvideConfig()
 		if err != nil {
-			t.Fatalf("error reading config file: %v", err)
+			syncErr = fmt.Errorf("error reading config file: %w", err)
+			return
 		}
 
-		// Setup server.
-		e := echo.New()
-		e.Validator = cv.ProvideValidator()
+		// setup db.
+		if err := database.SetupDatabase(cfg); err != nil {
+			syncErr = fmt.Errorf("error setting up db: %w", err)
+			return
+		}
 
 		// Migrate db.
 		m, err := internal.WirePgMigrateInstance()
 		if err != nil {
-			t.Fatalf("error creating DB migration instance: %v", err)
+			syncErr = fmt.Errorf("error creating db migration instance: %w", err)
+			return
 		}
 		if err := m.Up(); err != nil && err.Error() != "no change" {
-			t.Fatalf("error migrating db: %v", err)
+			syncErr = fmt.Errorf("error migration db: %w", err)
+			return
 		}
 
 		// Setup usecase and handler.
 		db, err := internal.WirePgConnPool(ctx)
 		if err != nil {
-			t.Fatalf("error creating db pool: %v", err)
+			syncErr = fmt.Errorf("error creating db pool: %w", err)
+			return
 		}
 		repo := repository.New(db)
-		kw := kafka.New(cfg)
+		kw, err := kafka.New(cfg)
+		if err != nil {
+			syncErr = fmt.Errorf("error creating kafka topics: %w", err)
+			return
+		}
 		ws := ws.New()
 		uc := uc.NewUseCaseService(repo, kw, ws)
 		rh := NewRestHandler(uc)
+
+		// Setup server.
+		e := echo.New()
+		e.Validator = cv.ProvideValidator()
 
 		tbs = &TestBedServer{
 			server: e,
 			handler: rh,
 		}
 	})
-	return tbs
+	return tbs, syncErr
 }
 
-func TestCreateMachineResourceUsageRT(t *testing.T) {
-	tbs := ProvideTestBedServer(t)
+func TestHandlerCreateMachineResourceUsageRT(t *testing.T) {
+	tbs, err := ProvideTestBedServer(t)
+	if err != nil {
+		t.Fatalf("unable to setup test bed: %v", err)
+	}
 
 	t.Run("should return 200 success", func(t *testing.T) {
 		// Setup request.
@@ -111,8 +145,11 @@ func TestCreateMachineResourceUsageRT(t *testing.T) {
 	})
 }
 
-func TestGetAggMachineResourceUsageRT(t *testing.T) {
-	tbs := ProvideTestBedServer(t)
+func TestHandlerGetAggMachineResourceUsageRT(t *testing.T) {
+	tbs, err := ProvideTestBedServer(t)
+	if err != nil {
+		t.Fatalf("unable to setup test bed: %v", err)
+	}
 
 	t.Run("should return 200 success", func(t *testing.T) {
 		// Setup request.

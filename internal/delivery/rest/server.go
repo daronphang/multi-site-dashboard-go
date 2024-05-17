@@ -2,9 +2,6 @@ package rest
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/delivery/rest/api/v1"
 	rh "multi-site-dashboard-go/internal/delivery/rest/handler"
 	cm "multi-site-dashboard-go/internal/delivery/rest/middleware"
@@ -29,17 +26,6 @@ type Server struct {
 }
 
 func NewServer(ctx context.Context, logger *zap.Logger, uc *uc.UseCaseService) (*Server, error) {
-	// Migrate db.
-	m, err := internal.WirePgMigrateInstance()
-	if err != nil {
-		msg := fmt.Sprintf("error creating DB migration instance: %v", err)
-		return nil, errors.New(msg)
-	}
-	if err := m.Up(); err != nil && err.Error() != "no change" {
-		msg := fmt.Sprintf("error migrating db: %v", err)
-		return nil, errors.New(msg)
-	}
-
 	// Create server.
 	e := echo.New()
 

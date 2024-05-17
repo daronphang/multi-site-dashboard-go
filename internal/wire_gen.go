@@ -46,11 +46,15 @@ func WirePgMigrateInstance() (*migrate.Migrate, error) {
 	if err != nil {
 		return nil, err
 	}
-	driver, err := database.ProvidePgDriver(configConfig)
+	db, err := database.ProvidePgConn(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	migrateMigrate, err := database.ProvidePgMigrateInstance(driver)
+	driver, err := database.ProvidePgDriver(db)
+	if err != nil {
+		return nil, err
+	}
+	migrateMigrate, err := database.ProvidePgMigrateInstance(driver, configConfig)
 	if err != nil {
 		return nil, err
 	}

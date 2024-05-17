@@ -26,6 +26,7 @@ func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
 func WirePgMigrateInstance() (*migrate.Migrate, error) {
 	wire.Build(
 		config.ProvideConfig,
+		database.ProvidePgConn,
 		database.ProvidePgDriver,
 		database.ProvidePgMigrateInstance,
 	)

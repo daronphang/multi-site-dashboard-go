@@ -18,13 +18,16 @@ type KafkaWriter struct {
 // however the writer configuration should not be modified after first use.
 // One writer is maintained throughout the application, and you have the 
 // the ability to define the topic on a per-message basis by setting Message.Topic.
-func New(cfg *config.Config) KafkaWriter {
+func New(cfg *config.Config) (KafkaWriter, error) {
+	if err := CreateTopics(cfg); err != nil {
+		return KafkaWriter{}, err
+	}
 	w := &kafka.Writer{
 		Addr: kafka.TCP(strings.Split(cfg.Kafka.BrokerAddresses, ",")...),
 		RequiredAcks: kafka.RequireOne,
 		MaxAttempts: 5,
 	}
-	return KafkaWriter{Writer: w}
+	return KafkaWriter{Writer: w}, nil
 }
 
 func (w KafkaWriter) PublishMachineResourceUsageEvent(ctx context.Context, arg domain.CreateMachineResourceUsageParams) error {

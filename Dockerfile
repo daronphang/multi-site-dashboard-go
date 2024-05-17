@@ -1,7 +1,7 @@
-ARG WORKINGPATH=/multi-site-dashboard-go
-ARG ENTRYPATH=/multi-site-dashboard-go
-ARG PORT=8080
+ARG WORKINGPATH=/app
+ARG ENTRYPATH=/app
 ARG CONFIG=development
+ARG DEPLOYMENT_IMAGE=scratch
 
 # Stage: BUILD
 # Install dependencies first to maximize Docker layer caching.
@@ -16,7 +16,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Build from source code.
-COPY *.go ./
-RUN go build -o /rest ./cmd/rest
-EXPOSE ${PORT}
-CMD ["/rest"]
+COPY . ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o /rest ./cmd/rest
+
+# Stage: DEPLOY
+FROM $DEPLOYMENT_IMAGE
+COPY --from=build /app/internal/config /app/internal/config 
+COPY --from=build /rest /rest
+ENTRYPOINT ["/rest"]

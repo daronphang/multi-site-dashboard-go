@@ -6,7 +6,7 @@ Web application is built using Clean Architecture by Uncle Bob.
 
 https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 
-## First time setup
+## First time setup (local)
 
 ### Git
 
@@ -16,9 +16,9 @@ https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 $ git clone https://tools.mf.platform/bitbucket/scm/dash/multi-site-dashboard-go.git
 ```
 
-### Dependencies
+### Package dependencies
 
-1. Install dependencies
+1. Install package dependencies
 
 ```sh
 $ go mod download
@@ -27,6 +27,8 @@ $ go mod download
 ### Wire
 
 1. Setup wire for dependency injection
+
+https://github.com/google/wire
 
 ```sh
 $ go install github.com/google/wire/cmd/wire@latest
@@ -69,9 +71,21 @@ $ psql --version
 
 https://www.pgadmin.org/download/pgadmin-4-macos/
 
+### Kafka
+
+1. Install as a container
+
+https://kafka.apache.org/quickstart
+
+```sh
+$ $ docker run --name kafka -p 9092:9092 apache/kafka:3.7.0
+```
+
 ### sqlc
 
 1. Install sqlc
+
+https://github.com/sqlc-dev/sqlc
 
 ```sh
 $ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
@@ -106,16 +120,14 @@ cp -a path/to/swagger-ui/dist/ /path/to/root/directory/swaggerui
 url: "./swagger.yaml"
 ```
 
-5. Install statik for Go compilation into binary
+### Statik
+
+1. Install statik for Go compilation into binary (for swagger)
+
+https://github.com/rakyll/statik
 
 ```sh
 $ go install github.com/rakyll/statik
-```
-
-6. Compile static files
-
-```sh
-$ statik -src path/to/root/directory/swaggerui
 ```
 
 ## Development
@@ -138,7 +150,7 @@ $ go generate ./internal # once wire_gen.go is created, can regenerate using thi
 
 https://docs.sqlc.dev/en/stable/
 
-1. Write SQL queries
+1. Provide SQL schemas and queries in `internal/database/migration` and `internal/repository/query` respectively
 
 2. Generate code
 
@@ -167,14 +179,6 @@ $ statik -src path/to/root/directory/swaggerui # Rerun statik.
 $ swagger serve ./docs/swagger.yaml --flavor swagger
 ```
 
-## Deployment
-
-### TimescaleDB
-
-1. Deploy using PostgreSQL Kubernetes operators to simplify installation, configuration and lifecycle
-
-https://github.com/zalando/postgres-operator/tree/master
-
 ## Testing
 
 Before running tests, set environment variable GO_ENV to 'TESTING'.
@@ -183,17 +187,11 @@ Before running tests, set environment variable GO_ENV to 'TESTING'.
 $ export GO_ENV=TESTING
 ```
 
-### TimescaleDB
-
-1. Install as a container
-
-https://docs.timescale.com/self-hosted/latest/install/installation-docker/
-
-```sh
-$ docker run -d --name timescaledbtest -p 2345:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb-ha:pg16
-```
-
 ### Mockery
+
+To generate mocks from interfaces, use Mockery.
+
+https://github.com/vektra/mockery
 
 ```sh
 $ brew install mockery
@@ -201,9 +199,27 @@ $ cd path/to/root/directory
 $ mockery # reads from .mockery.yaml config file
 ```
 
-### Running tests
+### Running unit tests
 
 ```sh
 $ cd path/to/root/directory
 $ go test ./... -v
+$ go test ./... -v -coverpkg=./...
 ```
+
+### Running integration tests
+
+1. Start containers with Docker Compose
+
+```sh
+$ cd path/to/root/directory
+$ docker compose up -d
+```
+
+## Deployment
+
+### TimescaleDB
+
+1. Deploy using PostgreSQL Kubernetes operators to simplify installation, configuration and lifecycle
+
+https://github.com/zalando/postgres-operator/tree/master

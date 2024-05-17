@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
+	"multi-site-dashboard-go/internal/database"
 	"multi-site-dashboard-go/internal/delivery/kafka"
 	kh "multi-site-dashboard-go/internal/delivery/kafka/handler"
 	"multi-site-dashboard-go/internal/delivery/rest"
@@ -38,16 +39,39 @@ func main() {
 		panic(fmt.Sprintf("error setting up logger: %v", err))
     }
 
-	// Create UseCase with infrastructure dependencies.
+	// Setup db.
+	if err := database.SetupDatabase(cfg); err != nil {
+		logger.Fatal("error setting up db", zap.String("trace", err.Error()))
+	}
+
+	// Migrate db.
+	m, err := internal.WirePgMigrateInstance()
+	if err != nil {
+		logger.Fatal("error creating db migration instance", zap.String("trace", err.Error()))
+	}
+
+	if err := m.Up(); err != nil && err.Error() != "no change" {
+		logger.Fatal("error migrating db", zap.String("trace", err.Error()))
+	}
+
+	// Init UseCase with dependencies.
 	db, err := internal.WirePgConnPool(ctx)
 	if err != nil {
 		logger.Fatal("error creating db pool", zap.String("trace", err.Error()))
 	}
 	repo := repository.New(db)
-	kw := kafka.New(cfg)
+	kw, err := kafka.New(cfg)
+	if err != nil {
+		logger.Fatal("error creating kafka topics", zap.String("trace", err.Error()))
+	}
 	// b := sse.New()
 	ws := ws.New()
 	uc := uc.NewUseCaseService(repo, kw, ws)
+
+	// Create Kafka topics.
+	if err := kafka.CreateTopics(cfg); err != nil {
+		logger.Fatal("error creating Kafka topics", zap.String("trace", err.Error()))
+	}
 
 	// Create server.
 	s, err := rest.NewServer(ctx, logger, uc)
@@ -55,11 +79,7 @@ func main() {
 		logger.Fatal("error creating server", zap.String("trace", err.Error()))
 	}
 
-	// Create Kafka topics.
-	if err := kafka.CreateTopics(cfg); err != nil {
-		logger.Fatal("error creating Kafka topics", zap.String("trace", err.Error()))
-	}
-
+	// Server and dependencies have been successfully initialized from here.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
