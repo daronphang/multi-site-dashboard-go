@@ -1,0 +1,21 @@
+with-expecter: true
+packages:
+  multi-site-dashboard-go/internal/repository:
+    interfaces:
+      ExtQuerier:
+        config:
+          dir: internal/repository/mock
+          filename: mock_ext_querier.go
+          outpkg: repomock
+  multi-site-dashboard-go/internal/usecase:
+    interfaces:
+      EventPublisher:
+        config:
+          dir: internal/usecase/mock
+          filename: mock_event_publisher.go
+          outpkg: ucmock
+      Broadcaster:
+        config:
+          dir: internal/usecase/mock
+          filename: mock_broadcaster.go
+          outpkg: ucmock

@@ -1,0 +1,50 @@
+# For running integration tests.
+version: "3.0"
+services:
+  multi-site-dashboard-go:
+    container_name: multi-site-dashboard-go
+    image: multi_site_dashboard_go
+    depends_on:
+      - timescaledb-test
+      - kafka-test
+    build:
+      args:
+        - DEPLOYMENT_IMAGE=build
+    environment:
+      - GO_ENV=TESTING
+    ports:
+      - 38000:8000
+    volumes:
+      - .:/app/coverage:rw
+    entrypoint:
+      [
+        "go",
+        "test",
+        "./...",
+        "-v",
+        "-coverpkg=./...",
+        "-coverprofile=/app/coverage/report.lcov",
+      ]
+  timescaledb-test:
+    container_name: timescaledb-test
+    image: timescale/timescaledb-ha:pg16
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 35432:5432
+  kafka-test:
+    container_name: kafka-test
+    image: apache/kafka:3.7.0
+    ports:
+      - 39092:9092
+    # https://github.com/apache/kafka/blob/trunk/docker/examples/README.md
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-test:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://:19092,CONTROLLER://:9093,PLAINTEXT_HOST://:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-test:19092,PLAINTEXT_HOST://localhost:39092
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"

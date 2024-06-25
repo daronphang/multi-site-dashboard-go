@@ -1,0 +1,138 @@
+basePath: /api/v1
+consumes:
+    - application/json
+definitions:
+    AggMachineResourceUsage:
+        properties:
+            bucket:
+                type: string
+                x-go-name: Bucket
+            metric1:
+                format: double
+                type: number
+                x-go-name: Metric1
+            metric2:
+                format: double
+                type: number
+                x-go-name: Metric2
+            metric3:
+                format: double
+                type: number
+                x-go-name: Metric3
+        type: object
+        x-go-package: multi-site-dashboard-go/internal/domain
+    CreateMachineResourceUsage:
+        properties:
+            machine:
+                type: string
+                x-go-name: Machine
+            metric1:
+                format: int32
+                type: integer
+                x-go-name: Metric1
+            metric2:
+                format: int32
+                type: integer
+                x-go-name: Metric2
+            metric3:
+                format: int32
+                type: integer
+                x-go-name: Metric3
+        type: object
+        x-go-name: CreateMachineResourceUsageParams
+        x-go-package: multi-site-dashboard-go/internal/domain
+    HTTPValidationError:
+        properties:
+            errors:
+                items:
+                    type: string
+                type: array
+                x-go-name: Errors
+            message:
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-package: multi-site-dashboard-go/internal/delivery/rest/handler
+    MachineResourceUsage:
+        properties:
+            createdAt:
+                type: string
+                x-go-name: CreatedAt
+            machine:
+                type: string
+                x-go-name: Machine
+            metric1:
+                format: int32
+                type: integer
+                x-go-name: Metric1
+            metric2:
+                format: int32
+                type: integer
+                x-go-name: Metric2
+            metric3:
+                format: int32
+                type: integer
+                x-go-name: Metric3
+        type: object
+        x-go-package: multi-site-dashboard-go/internal/domain
+info:
+    description: Documentation for Multi-Site Dashboard
+    version: 1.0.0
+paths:
+    /machine:
+        post:
+            description: Add a time series entry for MachineResourceUsage
+            operationId: CreateMachineResourceUsage
+            parameters:
+                - in: body
+                  name: MachineResourceUsageParam
+                  schema:
+                    $ref: '#/definitions/CreateMachineResourceUsage'
+            responses:
+                "200":
+                    description: MachineResourceUsage
+                    schema:
+                        $ref: '#/definitions/MachineResourceUsage'
+                "400":
+                    description: HTTPValidationError
+                    schema:
+                        $ref: '#/definitions/HTTPValidationError'
+            tags:
+                - ResourceTracking
+    /machines/{machine}:
+        get:
+            description: Group MachineResourceUsage time series by timeBucket within lookBackPeriod from today and aggregate median
+            operationId: GetAggMachineResourceUsage
+            parameters:
+                - in: path
+                  name: machine
+                  required: true
+                  type: string
+                  x-go-name: Machine
+                - in: query
+                  name: timeBucket
+                  type: string
+                  x-go-name: TimeBucket
+                - in: query
+                  name: lookBackPeriod
+                  type: string
+                  x-go-name: LookBackPeriod
+            responses:
+                "200":
+                    description: AggMachineResourceUsage
+                    schema:
+                        items:
+                            $ref: '#/definitions/AggMachineResourceUsage'
+                        type: array
+                "400":
+                    description: HTTPValidationError
+                    schema:
+                        $ref: '#/definitions/HTTPValidationError'
+            tags:
+                - ResourceTracking
+produces:
+    - application/json
+schemes:
+    - http
+    - https
+swagger: "2.0"

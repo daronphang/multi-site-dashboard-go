@@ -22,3 +22,7 @@ go.work
 
 *.env*
 *config*.yaml
+**/*.log*
+log/
+
+*.lcov
