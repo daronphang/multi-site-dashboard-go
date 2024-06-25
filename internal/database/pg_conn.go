@@ -10,7 +10,6 @@ import (
 
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -18,8 +17,6 @@ import (
 
 var (
 	pgConnPool *pgxpool.Pool
-	dbConn *sql.DB
-	syncOnceConn sync.Once
 	syncOncePool sync.Once
 )
 
@@ -50,23 +47,22 @@ func ProvidePgConnPool(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, 
 	return pgConnPool, poolErr
 }
 
-func ProvidePgConn(cfg *config.Config) (*sql.DB, error) {
-	var connErr error
-	syncOnceConn.Do(func() {
-		u := &url.URL{
-			Scheme: "postgres",
-			User: url.UserPassword(cfg.Postgres.Username, cfg.Postgres.Password),
-			Host: fmt.Sprintf("%s:%d", cfg.Postgres.Server, cfg.Postgres.Port),
-			// Path: cfg.Postgres.DBName,
-		}
-		conn, err := sql.Open("pgx", u.String())
-		if err != nil {
-			connErr = err
-			return
-		}
-		dbConn = conn 
-	})
-	return dbConn, connErr
+func ProvidePgConn(cfg *config.Config, withPath bool) (*sql.DB, error) {
+	var path = cfg.Postgres.DBName
+	if !withPath {
+		path = ""
+	}
+	u := &url.URL{
+		Scheme: "postgres",
+		User: url.UserPassword(cfg.Postgres.Username, cfg.Postgres.Password),
+		Host: fmt.Sprintf("%s:%d", cfg.Postgres.Server, cfg.Postgres.Port),
+		Path: path,
+	}
+	conn, err := sql.Open("pgx", u.String())
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }
 
 func ProvidePgDriver(conn *sql.DB) (database.Driver, error) {
@@ -79,15 +75,19 @@ func ProvidePgDriver(conn *sql.DB) (database.Driver, error) {
 }
 
 func SetupDatabase(cfg *config.Config) error {
-	conn, err := ProvidePgConn(cfg)
+	conn, err := ProvidePgConn(cfg, false)
 	if err != nil {
 		return err
 	}
-	_, err = conn.Exec(
-		"SELECT 'CREATE DATABASE " + pgx.Identifier{cfg.Postgres.DBName}.Sanitize() + "' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = $1)",
-		cfg.Postgres.DBName,
-	)
-	if err != nil {
+
+	rv := conn.QueryRow("SELECT 1 FROM pg_database WHERE datname = $1", cfg.Postgres.DBName)
+	if err := rv.Scan(); err == sql.ErrNoRows {
+		_, err = conn.Exec("CREATE DATABASE " + cfg.Postgres.DBName)
+		if err != nil {
+			return err
+		}
+	}
+	if err := conn.Close(); err != nil {
 		return err
 	}
 	return nil

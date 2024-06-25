@@ -41,12 +41,12 @@ func WirePgConnPool(ctx context.Context) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func WirePgMigrateInstance() (*migrate.Migrate, error) {
+func WirePgMigrateInstance(withPath bool) (*migrate.Migrate, error) {
 	configConfig, err := config.ProvideConfig()
 	if err != nil {
 		return nil, err
 	}
-	db, err := database.ProvidePgConn(configConfig)
+	db, err := database.ProvidePgConn(configConfig, withPath)
 	if err != nil {
 		return nil, err
 	}

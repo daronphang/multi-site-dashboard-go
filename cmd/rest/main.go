@@ -18,6 +18,7 @@ import (
 
 	_ "multi-site-dashboard-go/docs"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -45,12 +46,12 @@ func main() {
 	}
 
 	// Migrate db.
-	m, err := internal.WirePgMigrateInstance()
+	m, err := internal.WirePgMigrateInstance(true)
 	if err != nil {
 		logger.Fatal("error creating db migration instance", zap.String("trace", err.Error()))
 	}
 
-	if err := m.Up(); err != nil && err.Error() != "no change" {
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Fatal("error migrating db", zap.String("trace", err.Error()))
 	}
 

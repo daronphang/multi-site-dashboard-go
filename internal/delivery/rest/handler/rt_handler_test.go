@@ -37,7 +37,7 @@ var (
 )
 
 func CleanupDatabase(cfg *config.Config) error {
-	conn, err := database.ProvidePgConn(cfg)
+	conn, err := database.ProvidePgConn(cfg, true)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func ProvideTestBedServer(t *testing.T) (*TestBedServer, error) {
 		}
 
 		// Migrate db.
-		m, err := internal.WirePgMigrateInstance()
+		m, err := internal.WirePgMigrateInstance(true)
 		if err != nil {
 			syncErr = fmt.Errorf("error creating db migration instance: %w", err)
 			return
