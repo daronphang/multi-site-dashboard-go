@@ -8,7 +8,6 @@ ARG DEPLOYMENT_IMAGE=scratch
 FROM golang:1.22.2 AS build
 ARG WORKINGPATH
 ARG CONFIG
-ARG BASEHREF
 WORKDIR ${WORKINGPATH}
 
 # Install packages.
@@ -21,6 +20,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /rest ./cmd/rest
 
 # Stage: DEPLOY
 FROM $DEPLOYMENT_IMAGE
-COPY --from=build /app/internal/config /app/internal/config 
+ARG WORKINGPATH
+WORKDIR ${WORKINGPATH}
+
+# When reading directory files in binary, path refers to
+# the location of where the binary was built.
+# To copy the files as reference.
+COPY . ./
+
 COPY --from=build /rest /rest
 ENTRYPOINT ["/rest"]

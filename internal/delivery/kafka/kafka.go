@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"fmt"
 	"multi-site-dashboard-go/internal"
 	"multi-site-dashboard-go/internal/config"
 	"net"
@@ -30,7 +29,6 @@ func (t Topic) String() string {
 func CreateTopics(cfg *config.Config) error {
 	conn, err := kafka.Dial("tcp", strings.Split(cfg.Kafka.BrokerAddresses, ",")[0])
 	if err != nil {
-		fmt.Println("hello world")
 		return err
 	}
 	defer conn.Close()
@@ -43,7 +41,6 @@ func CreateTopics(cfg *config.Config) error {
 	var controllerConn *kafka.Conn
 	controllerConn, err = kafka.Dial("tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
 	if err != nil {
-		fmt.Println("hello world awesome")
 		return err
 	}
 	defer controllerConn.Close()

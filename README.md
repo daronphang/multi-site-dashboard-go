@@ -16,14 +16,6 @@ https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 $ git clone https://tools.mf.platform/bitbucket/scm/dash/multi-site-dashboard-go.git
 ```
 
-### Package dependencies
-
-1. Install package dependencies
-
-```sh
-$ go mod download
-```
-
 ### Wire
 
 1. Setup wire for dependency injection
@@ -78,7 +70,7 @@ https://www.pgadmin.org/download/pgadmin-4-macos/
 https://kafka.apache.org/quickstart
 
 ```sh
-$ $ docker run --name kafka -p 9092:9092 apache/kafka:3.7.0
+$ docker run --name kafka -p 9092:9092 -d apache/kafka:3.7.0
 ```
 
 ### sqlc
@@ -213,7 +205,7 @@ $ go test ./... -v -coverpkg=./...
 
 ```sh
 $ cd path/to/root/directory
-$ docker compose up -d
+$ docker compose -f docker-compose-testing.yaml up -d
 ```
 
 ## Deployment

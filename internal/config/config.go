@@ -70,13 +70,17 @@ func ProvideConfig() (*Config, error) {
 func readConfigFromFile() error {
 	env := strings.ToUpper(os.Getenv("GO_ENV"))
 	_, filename, _, _ := runtime.Caller(0)
-	if env == "TESTING" {
-		viper.SetConfigName("config.test")
-	} else {
-		viper.SetConfigName("config")
-	}
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(path.Dir(filename))
+
+	if env == "TESTING" {
+		viper.SetConfigName("config.testing")
+	} else if env == "PRODUCTION" {
+		viper.SetConfigName("config.production")
+	} else {
+		viper.SetConfigName("config.development")
+	}
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		return err

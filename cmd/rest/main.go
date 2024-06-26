@@ -9,7 +9,7 @@ import (
 	"multi-site-dashboard-go/internal/delivery/kafka"
 	kh "multi-site-dashboard-go/internal/delivery/kafka/handler"
 	"multi-site-dashboard-go/internal/delivery/rest"
-	ws "multi-site-dashboard-go/internal/delivery/websocket"
+	"multi-site-dashboard-go/internal/delivery/sse"
 	"multi-site-dashboard-go/internal/repository"
 	uc "multi-site-dashboard-go/internal/usecase"
 	"os"
@@ -65,9 +65,8 @@ func main() {
 	if err != nil {
 		logger.Fatal("error creating kafka topics", zap.String("trace", err.Error()))
 	}
-	// b := sse.New()
-	ws := ws.New()
-	uc := uc.NewUseCaseService(repo, kw, ws)
+	b := sse.New()
+	uc := uc.NewUseCaseService(repo, kw, b)
 
 	// Create Kafka topics.
 	if err := kafka.CreateTopics(cfg); err != nil {
