@@ -210,8 +210,23 @@ $ docker compose -f docker-compose-testing.yaml up -d
 
 ## Deployment
 
-### TimescaleDB
+### AWS EC2
 
-1. Deploy using PostgreSQL Kubernetes operators to simplify installation, configuration and lifecycle
+1. Clone repository into EC2
 
-https://github.com/zalando/postgres-operator/tree/master
+```sh
+$ git clone <public_url>
+```
+
+2. Copy config file
+
+```sh
+$ cd path/to/root/directory
+$ touch internal/config/config.production.yaml
+```
+
+3. Run Docker Compose
+
+```sh
+$ docker compose -f docker-compose-deployment.yaml up -d
+```
