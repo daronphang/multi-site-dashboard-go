@@ -13,7 +13,7 @@ services:
     environment:
       - GO_ENV=PRODUCTION
     ports:
-      - 38000:8000
+      - 8000:8000
     deploy:
       restart_policy:
         condition: on-failure
@@ -25,12 +25,12 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     ports:
-      - 35432:5432
+      - 5432:5432
   kafka:
     container_name: kafka1
     image: apache/kafka:3.7.0
     ports:
-      - 39092:9092
+      - 9092:9092
     # https://github.com/apache/kafka/blob/trunk/docker/examples/README.md
     environment:
       KAFKA_NODE_ID: 1
